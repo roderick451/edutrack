@@ -4,28 +4,30 @@
 {% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
-  <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-    <div class="stat-card">
-      <div class="flex items-center justify-between">
+<div class="dashboard-layout">
+  <section class="metrics-grid">
+    <div class="stat-card stat-card-soft">
+      <div class="stat-card-top">
         <div>
           <p class="stat-label">Total Students</p>
           <p class="stat-value">{{ total_students }}</p>
         </div>
-        <div class="stat-icon bg-indigo-100 text-indigo-600"><i data-lucide="users"></i></div>
+        <div class="stat-icon bg-blue-100 text-blue-700"><i data-lucide="users"></i></div>
       </div>
     </div>
-    <div class="stat-card">
-      <div class="flex items-center justify-between">
+
+    <div class="stat-card stat-card-soft">
+      <div class="stat-card-top">
         <div>
           <p class="stat-label">Total Courses</p>
           <p class="stat-value">{{ total_courses }}</p>
         </div>
-        <div class="stat-icon bg-violet-100 text-violet-600"><i data-lucide="book-open"></i></div>
+        <div class="stat-icon bg-sky-100 text-sky-700"><i data-lucide="book-open"></i></div>
       </div>
     </div>
-    <div class="stat-card">
-      <div class="flex items-center justify-between">
+
+    <div class="stat-card stat-card-soft">
+      <div class="stat-card-top">
         <div>
           <p class="stat-label">Active Enrollments</p>
           <p class="stat-value">{{ active_enrollments }}</p>
@@ -33,10 +35,11 @@
         <div class="stat-icon bg-emerald-100 text-emerald-600"><i data-lucide="graduation-cap"></i></div>
       </div>
     </div>
-    <div class="stat-card">
-      <div class="flex items-center justify-between">
+
+    <div class="stat-card stat-card-soft">
+      <div class="stat-card-top">
         <div>
-          <p class="stat-label">New This Week</p>
+          <p class="stat-label">New Students</p>
           <p class="stat-value">{{ recent_students|length }}</p>
         </div>
         <div class="stat-icon bg-amber-100 text-amber-600"><i data-lucide="sparkles"></i></div>
@@ -44,28 +47,54 @@
     </div>
   </section>
 
-  <section class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-    <div class="panel xl:col-span-2">
-      <div class="panel-header">
-        <h3>Student Distribution</h3>
+  <section class="dashboard-main-grid">
+    <div class="panel chart-panel">
+      <div class="panel-header compact-header">
+        <h3>Student Distribution by Course</h3>
       </div>
-      <div class="h-80">
-        <canvas id="studentChart"></canvas>
+      <div class="chart-area">
+        <div class="donut-wrap">
+          <div class="donut-chart">
+            <div class="donut-center">
+              <strong>{{ total_students }}</strong>
+              <span>Students</span>
+            </div>
+          </div>
+        </div>
+        <div class="legend-list">
+          {% for course_name, count in course_distribution[:4] %}
+          <div class="legend-item">
+            <span class="dot dot-{{ loop.index0 + 1 }}"></span>
+            <span class="legend-name">{{ course_name }}</span>
+            <span class="legend-value">{{ count }}</span>
+          </div>
+          {% else %}
+          <div class="text-muted">No course data yet.</div>
+          {% endfor %}
+        </div>
       </div>
     </div>
 
-    <div class="panel">
-      <div class="panel-header">
-        <h3>Recent Additions</h3>
+    <div class="panel list-panel">
+      <div class="panel-header compact-header">
+        <h3>Recent Students</h3>
+        <a href="{{ url_for('students.list_students') }}" class="mini-link">View All</a>
       </div>
-      <div class="space-y-3">
-        {% for student in recent_students %}
-        <div class="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
-          <div>
-            <p class="font-semibold text-slate-800">{{ student.full_name }}</p>
-            <p class="text-sm text-slate-500">{{ student.student_id }}</p>
+
+      <div class="recent-list">
+        {% for student in recent_students[:5] %}
+        <div class="recent-item">
+          <div class="recent-person">
+            <div class="initial-badge">{{ student.first_name[0]|upper }}{{ student.last_name[0]|upper }}</div>
+            <div>
+              <p class="recent-name">{{ student.full_name }}</p>
+              <p class="recent-meta">{{ student.student_id }}</p>
+            </div>
           </div>
-          <span class="badge badge-info">{{ student.year_level }}</span>
+          <div class="recent-status-wrap">
+            <span class="status-badge {% if student.enrollment_status == 'Active' %}status-active{% elif student.enrollment_status == 'Graduated' %}status-graduated{% else %}status-inactive{% endif %}">{{ student.enrollment_status }}</span>
+            <span class="recent-time">{{ student.created_at.strftime('%b %d, %Y') }}</span>
+          </div>
         </div>
         {% else %}
         <div class="empty-state">
@@ -76,20 +105,20 @@
     </div>
   </section>
 
-  <section class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+  <section class="bottom-grid">
     <div class="panel">
-      <div class="panel-header">
-        <h3>Enrollment Statistics</h3>
+      <div class="panel-header compact-header">
+        <h3>Recent Enrollments</h3>
       </div>
-      <div class="space-y-4">
+      <div class="progress-list">
         {% for course_name, count in course_distribution %}
-        <div>
-          <div class="flex justify-between text-sm mb-1">
+        <div class="progress-item">
+          <div class="progress-meta">
             <span>{{ course_name }}</span>
-            <span class="font-semibold">{{ count }}</span>
+            <strong>{{ count }}</strong>
           </div>
-          <div class="w-full bg-slate-200 rounded-full h-2">
-            <div class="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500" style="width: {{ ((count / total_students) * 100) if total_students else 0 }}%"></div>
+          <div class="progress-track">
+            <span class="progress-bar w-{{ loop.index }}" style="width: {{ ((count / total_students) * 100) if total_students else 0 }}%"></span>
           </div>
         </div>
         {% else %}
@@ -100,11 +129,11 @@
       </div>
     </div>
 
-    <div class="panel">
-      <div class="panel-header">
+    <div class="panel quick-actions-panel">
+      <div class="panel-header compact-header">
         <h3>Quick Actions</h3>
       </div>
-      <div class="grid grid-cols-2 gap-3">
+      <div class="quick-grid">
         <a href="{{ url_for('students.new_student') }}" class="action-card">
           <i data-lucide="user-plus"></i>
           <span>Add Student</span>
@@ -125,29 +154,4 @@
     </div>
   </section>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-  const labels = {{ year_distribution|map(attribute=0)|list|tojson }};
-  const data = {{ year_distribution|map(attribute=1)|list|tojson }};
-
-  new Chart(document.getElementById('studentChart'), {
-    type: 'bar',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'Students',
-        data: data,
-        backgroundColor: ['#6366F1', '#8B5CF6', '#A78BFA', '#C4B5FD'],
-        borderRadius: 10,
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
-    }
-  });
-</script>
 {% endblock %}
