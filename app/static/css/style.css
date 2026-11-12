@@ -977,6 +977,7 @@ body[data-theme="dark"] .progress-track { background: rgba(255,255,255,0.12); }
 .login-form .form-field { gap: 0.35rem; }
 .login-form .form-field label { font-size: 0.75rem; }
 .login-form .input-field { min-height: 43px; font-size: 0.8rem; }
+.login-form .input-shell .input-field { padding-left: 2.8rem; }
 .login-options {
   display: flex;
   align-items: center;
