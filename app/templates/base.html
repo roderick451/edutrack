@@ -41,7 +41,7 @@
             <img src="{{ url_for('static', filename='images/edutrack-logo.svg') }}" alt="EduTrack logo" />
           </div>
           <div class="brand-copy">
-            <p class="brand-tag">Admin</p>
+            <p class="brand-tag">Student Records</p>
             <h1>EduTrack</h1>
           </div>
         </div>
@@ -73,8 +73,12 @@
             <h2>{% block page_title %}Overview{% endblock %}</h2>
           </div>
           <div class="topbar-actions">
+            <div class="date-pill"><i data-lucide="calendar-days"></i><span data-current-date></span></div>
+            <button type="button" class="theme-toggle" aria-label="Switch to dark mode" title="Toggle color theme">
+              <i data-lucide="moon"></i>
+            </button>
             <div class="user-pill">
-              <i data-lucide="shield-check"></i>
+              <span class="user-avatar">{{ current_user.username[:1]|upper }}</span>
               <span>{{ current_user.username }}</span>
             </div>
             <button class="mobile-toggle" aria-label="Toggle navigation">

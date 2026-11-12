@@ -22,6 +22,7 @@ def list_students():
     search_query = request.args.get("q", "", type=str).strip()
     course_filter = request.args.get("course_id", "", type=str)
     year_filter = request.args.get("year_level", "", type=str)
+    status_filter = request.args.get("status", "", type=str)
     sort_by = request.args.get("sort", "created_at")
     page = request.args.get("page", 1, type=int)
 
@@ -40,6 +41,9 @@ def list_students():
     if year_filter:
         query = query.filter(Student.year_level == year_filter)
 
+    if status_filter in {"Active", "Inactive", "Graduated"}:
+        query = query.filter(Student.enrollment_status == status_filter)
+
     sort_column = {
         "student_id": Student.student_id,
         "first_name": Student.first_name,
@@ -51,7 +55,7 @@ def list_students():
 
     students = query.order_by(sort_column.asc()).paginate(page=page, per_page=10, error_out=False)
     courses = Course.query.order_by(Course.course_name.asc()).all()
-    return render_template("students.html", students=students, courses=courses, search_query=search_query, course_filter=course_filter, year_filter=year_filter, sort_by=sort_by)
+    return render_template("students.html", students=students, courses=courses, search_query=search_query, course_filter=course_filter, year_filter=year_filter, status_filter=status_filter, sort_by=sort_by)
 
 
 @students_bp.route("/students/new", methods=["GET", "POST"])

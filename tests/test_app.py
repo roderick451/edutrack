@@ -38,6 +38,23 @@ def test_protected_dashboard_requires_login(client):
     assert response.status_code == 302
 
 
+def test_authenticated_dashboard_renders_reference_sections(app, client):
+    with app.app_context():
+        user = User(username='admin', email='admin@example.com', password_hash=generate_password_hash('admin123'))
+        db.session.add(user)
+        db.session.commit()
+        user_id = user.id
+
+    with client.session_transaction() as sess:
+        sess['_user_id'] = str(user_id)
+        sess['_fresh'] = True
+
+    response = client.get('/dashboard')
+    assert response.status_code == 200
+    assert b'Good day, Admin!' in response.data
+    assert b'Student Distribution by Course' in response.data
+
+
 def test_create_admin_account(client):
     response = client.post('/setup-admin', data={'username': 'admin', 'password': 'admin123'}, follow_redirects=True)
     assert response.status_code == 200
@@ -57,6 +74,10 @@ def test_student_crud_flow(app, client):
     with client.session_transaction() as sess:
         sess['_user_id'] = str(user_id)
         sess['_fresh'] = True
+
+    response = client.get('/students/new')
+    assert response.status_code == 200
+    assert b'Personal Information' in response.data
 
     response = client.post('/students/new', data={
         'student_id': 'STU-001',
@@ -115,6 +136,10 @@ def test_course_crud(app, client):
         sess['_user_id'] = str(user_id)
         sess['_fresh'] = True
 
+    response = client.get('/courses')
+    assert response.status_code == 200
+    assert b'Course Management' in response.data
+
     response = client.post('/courses/new', data={'course_code': 'CS102', 'course_name': 'Algorithms', 'description': 'Algorithm design'}, follow_redirects=True)
     assert response.status_code == 200
     assert Course.query.filter_by(course_code='CS102').count() == 1
@@ -130,6 +155,8 @@ def test_search_and_filtering(app, client):
         course_id = course.id
         student = Student(student_id='STU-099', first_name='Lina', last_name='Martinez', email='lina@example.com', phone='09111111111', date_of_birth=date(2003, 11, 20), gender='Female', course_id=course_id, year_level='2nd Year', enrollment_status='Active')
         db.session.add(student)
+        inactive_student = Student(student_id='STU-100', first_name='Kai', last_name='Santos', email='kai@example.com', phone='09112223333', date_of_birth=date(2002, 8, 15), gender='Male', course_id=course_id, year_level='3rd Year', enrollment_status='Inactive')
+        db.session.add(inactive_student)
         db.session.commit()
         user_id = user.id
 
@@ -137,6 +164,11 @@ def test_search_and_filtering(app, client):
         sess['_user_id'] = str(user_id)
         sess['_fresh'] = True
 
-    response = client.get(f'/students?q=Lina&course_id={course_id}&year_level=2nd+Year')
+    response = client.get(f'/students?q=Lina&course_id={course_id}&year_level=2nd+Year&status=Active')
     assert response.status_code == 200
     assert b'Lina' in response.data
+
+    response = client.get('/students?status=Inactive')
+    assert response.status_code == 200
+    assert b'Kai' in response.data
+    assert b'Lina' not in response.data

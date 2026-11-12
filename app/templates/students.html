@@ -4,43 +4,58 @@
 {% block page_title %}Students{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-    <div class="flex flex-wrap gap-3">
-      <form method="GET" class="flex flex-wrap gap-3">
-        <input type="text" name="q" value="{{ search_query }}" placeholder="Search by name or ID" class="input-field min-w-[220px]" />
-        <select name="course_id" class="input-field">
+<div class="records-page">
+  <div class="page-heading-row">
+    <div>
+      <p class="eyebrow-label">Student record management</p>
+      <h2 class="section-title">Student Management <span class="count-pill">{{ students.total }} Students</span></h2>
+      <p class="section-subtitle">Manage, organize, and monitor student records in one place.</p>
+    </div>
+    <div class="page-actions">
+      <a href="{{ url_for('students.export_students') }}" class="btn-secondary"><i data-lucide="download"></i> Export CSV</a>
+      <a href="{{ url_for('students.new_student') }}" class="btn-primary"><i data-lucide="user-plus"></i> Add Student</a>
+    </div>
+  </div>
+
+  <div class="panel records-panel">
+    <div class="records-toolbar">
+      <form method="GET" class="filter-form">
+        <label class="search-control">
+          <i data-lucide="search"></i>
+          <input type="text" name="q" value="{{ search_query }}" placeholder="Search students by name or ID..." aria-label="Search students by name or ID" />
+        </label>
+        <select name="course_id" class="filter-select" aria-label="Filter by course">
           <option value="">All courses</option>
           {% for course in courses %}
             <option value="{{ course.id }}" {% if course_filter == course.id|string %}selected{% endif %}>{{ course.course_name }}</option>
           {% endfor %}
         </select>
-        <select name="year_level" class="input-field">
+        <select name="year_level" class="filter-select" aria-label="Filter by year level">
           <option value="">All year levels</option>
           {% for year in ['1st Year','2nd Year','3rd Year','4th Year'] %}
             <option value="{{ year }}" {% if year_filter == year %}selected{% endif %}>{{ year }}</option>
           {% endfor %}
         </select>
-        <button type="submit" class="btn-primary">Filter</button>
+        <select name="status" class="filter-select" aria-label="Filter by enrollment status">
+          <option value="">All statuses</option>
+          {% for status in ['Active', 'Inactive', 'Graduated'] %}
+            <option value="{{ status }}" {% if status_filter == status %}selected{% endif %}>{{ status }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn-secondary filter-submit"><i data-lucide="sliders-horizontal"></i> Filter</button>
+        <a href="{{ url_for('students.list_students') }}" class="btn-secondary filter-reset"><i data-lucide="rotate-ccw"></i> Reset</a>
       </form>
     </div>
-    <div class="flex gap-3">
-      <a href="{{ url_for('students.export_students') }}" class="btn-secondary">Export CSV</a>
-      <a href="{{ url_for('students.new_student') }}" class="btn-primary">Add Student</a>
-    </div>
-  </div>
-
-  <div class="panel overflow-hidden">
-    <div class="overflow-x-auto">
-      <table class="table-fixed w-full">
+    <div class="table-scroll">
+      <table class="table-fixed student-table">
         <thead>
           <tr>
             <th>Student ID</th>
-            <th>Name</th>
+            <th>Student</th>
             <th>Course</th>
             <th>Year</th>
             <th>Status</th>
-            <th>Created</th>
+            <th>Date Added</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -49,22 +64,25 @@
           <tr>
             <td class="font-semibold text-slate-700">{{ record.student_id }}</td>
             <td>
-              <div class="flex flex-col">
-                <span class="font-medium">{{ record.first_name }} {{ record.last_name }}</span>
-                <span class="text-xs text-slate-500">{{ record.email }}</span>
+              <div class="student-cell">
+                <span class="initial-badge">{{ record.first_name[0]|upper }}{{ record.last_name[0]|upper }}</span>
+                <span class="student-cell-copy">
+                  <strong>{{ record.full_name }}</strong>
+                  <small>{{ record.email }}</small>
+                </span>
               </div>
             </td>
             <td>{{ record.course.course_name }}</td>
             <td>{{ record.year_level }}</td>
-            <td><span class="badge {% if record.enrollment_status == 'Active' %}badge-success{% elif record.enrollment_status == 'Graduated' %}badge-info{% else %}badge-warning{% endif %}">{{ record.enrollment_status }}</span></td>
-            <td>{{ record.created_at.strftime('%Y-%m-%d') }}</td>
+            <td><span class="status-badge {% if record.enrollment_status == 'Active' %}status-active{% elif record.enrollment_status == 'Graduated' %}status-graduated{% else %}status-inactive{% endif %}">{{ record.enrollment_status }}</span></td>
+            <td>{{ record.created_at.strftime('%b %d, %Y') }}</td>
             <td>
-              <div class="flex gap-2">
-                <a href="{{ url_for('students.student_profile', student_id=record.id) }}" class="icon-button" title="View"><i data-lucide="eye"></i></a>
-                <a href="{{ url_for('students.edit_student', student_id=record.id) }}" class="icon-button" title="Edit"><i data-lucide="pencil"></i></a>
+              <div class="table-actions">
+                <a href="{{ url_for('students.student_profile', student_id=record.id) }}" class="icon-button" title="View student"><i data-lucide="eye"></i></a>
+                <a href="{{ url_for('students.edit_student', student_id=record.id) }}" class="icon-button" title="Edit student"><i data-lucide="pencil"></i></a>
                 <form action="{{ url_for('students.delete_student', student_id=record.id) }}" method="POST" onsubmit="return confirm('Delete this student record?');">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                  <button type="submit" class="icon-button danger" title="Delete"><i data-lucide="trash-2"></i></button>
+                  <button type="submit" class="icon-button danger" title="Delete student"><i data-lucide="trash-2"></i></button>
                 </form>
               </div>
             </td>
@@ -74,6 +92,7 @@
             <td colspan="7">
               <div class="empty-state">
                 <p>No student records found.</p>
+                <a href="{{ url_for('students.new_student') }}" class="mini-link">Add the first student</a>
               </div>
             </td>
           </tr>
@@ -83,14 +102,14 @@
     </div>
 
     {% if students.pages > 1 %}
-    <div class="flex justify-between items-center px-6 py-4 border-t border-slate-200">
+    <div class="pagination-row">
       <div class="text-sm text-slate-500">Page {{ students.page }} of {{ students.pages }}</div>
-      <div class="flex gap-2">
+      <div class="pagination-actions">
         {% if students.has_prev %}
-          <a href="{{ url_for('students.list_students', q=search_query, course_id=course_filter, year_level=year_filter, page=students.prev_num) }}" class="btn-secondary">Previous</a>
+          <a href="{{ url_for('students.list_students', q=search_query, course_id=course_filter, year_level=year_filter, status=status_filter, page=students.prev_num) }}" class="btn-secondary">Previous</a>
         {% endif %}
         {% if students.has_next %}
-          <a href="{{ url_for('students.list_students', q=search_query, course_id=course_filter, year_level=year_filter, page=students.next_num) }}" class="btn-secondary">Next</a>
+          <a href="{{ url_for('students.list_students', q=search_query, course_id=course_filter, year_level=year_filter, status=status_filter, page=students.next_num) }}" class="btn-secondary">Next</a>
         {% endif %}
       </div>
     </div>

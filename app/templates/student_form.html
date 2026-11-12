@@ -4,67 +4,110 @@
 {% block page_title %}{{ title }}{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
-  <div class="panel">
-    <form method="POST" novalidate class="space-y-6">
-      {{ form.hidden_tag() }}
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+<div class="form-page">
+  <div class="form-breadcrumb">
+    <a href="{{ url_for('students.list_students') }}">Students</a>
+    <i data-lucide="chevron-right"></i>
+    <span>{{ title }}</span>
+  </div>
+  <div class="page-heading-row form-heading">
+    <div>
+      <h2 class="section-title">{{ title }}</h2>
+      <p class="section-subtitle">Create and manage a student record in the system.</p>
+    </div>
+  </div>
+
+  <form method="POST" novalidate class="student-form-layout">
+    {{ form.hidden_tag() }}
+    <section class="panel form-section">
+      <div class="form-section-title">
+        <span class="section-icon"><i data-lucide="user-round"></i></span>
         <div>
-          <label class="label-text">Student ID</label>
-          {{ form.student_id(class_='input-field') }}
-          {% for error in form.student_id.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
+          <h3>Personal Information</h3>
+          <p>Basic details for this student.</p>
         </div>
-        <div>
-          <label class="label-text">Email</label>
-          {{ form.email(class_='input-field') }}
-          {% for error in form.email.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
-        </div>
-        <div>
-          <label class="label-text">First Name</label>
-          {{ form.first_name(class_='input-field') }}
+      </div>
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="{{ form.first_name.id }}">First Name <span class="required-mark">*</span></label>
+          {{ form.first_name(class_='input-field', placeholder='Enter first name') }}
           {% for error in form.first_name.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
         </div>
-        <div>
-          <label class="label-text">Last Name</label>
-          {{ form.last_name(class_='input-field') }}
+        <div class="form-field">
+          <label for="{{ form.last_name.id }}">Last Name <span class="required-mark">*</span></label>
+          {{ form.last_name(class_='input-field', placeholder='Enter last name') }}
           {% for error in form.last_name.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
         </div>
-        <div>
-          <label class="label-text">Phone Number</label>
-          {{ form.phone(class_='input-field') }}
-          {% for error in form.phone.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
+        <div class="form-field">
+          <label for="{{ form.student_id.id }}">Student ID <span class="required-mark">*</span></label>
+          {{ form.student_id(class_='input-field', placeholder='e.g. 2025-001') }}
+          {% for error in form.student_id.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
         </div>
-        <div>
-          <label class="label-text">Date of Birth</label>
+        <div class="form-field">
+          <label for="{{ form.date_of_birth.id }}">Date of Birth <span class="required-mark">*</span></label>
           {{ form.date_of_birth(class_='input-field', type='date') }}
           {% for error in form.date_of_birth.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
         </div>
-        <div>
-          <label class="label-text">Gender</label>
+        <div class="form-field form-field-wide">
+          <label for="{{ form.gender.id }}">Gender</label>
           {{ form.gender(class_='input-field') }}
         </div>
+      </div>
+    </section>
+
+    <section class="panel form-section">
+      <div class="form-section-title">
+        <span class="section-icon"><i data-lucide="contact-round"></i></span>
         <div>
-          <label class="label-text">Course</label>
+          <h3>Contact Information</h3>
+          <p>How to reach the student.</p>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="{{ form.email.id }}">Email Address <span class="required-mark">*</span></label>
+          {{ form.email(class_='input-field', placeholder='student@example.com') }}
+          {% for error in form.email.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
+        </div>
+        <div class="form-field">
+          <label for="{{ form.phone.id }}">Phone Number <span class="required-mark">*</span></label>
+          {{ form.phone(class_='input-field', placeholder='Enter phone number') }}
+          {% for error in form.phone.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <section class="panel form-section">
+      <div class="form-section-title">
+        <span class="section-icon"><i data-lucide="graduation-cap"></i></span>
+        <div>
+          <h3>Academic Information</h3>
+          <p>Course placement and enrollment status.</p>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field form-field-wide">
+          <label for="{{ form.course_id.id }}">Course <span class="required-mark">*</span></label>
           {{ form.course_id(class_='input-field') }}
           {% for error in form.course_id.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
         </div>
-        <div>
-          <label class="label-text">Year Level</label>
+        <div class="form-field">
+          <label for="{{ form.year_level.id }}">Year Level <span class="required-mark">*</span></label>
           {{ form.year_level(class_='input-field') }}
           {% for error in form.year_level.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
         </div>
-        <div>
-          <label class="label-text">Enrollment Status</label>
+        <div class="form-field">
+          <label for="{{ form.enrollment_status.id }}">Enrollment Status <span class="required-mark">*</span></label>
           {{ form.enrollment_status(class_='input-field') }}
           {% for error in form.enrollment_status.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
         </div>
       </div>
+    </section>
 
-      <div class="flex justify-end gap-3 pt-4 border-t border-slate-200">
-        <a href="{{ url_for('students.list_students') }}" class="btn-secondary">Cancel</a>
-        {{ form.submit(class_='btn-primary') }}
-      </div>
-    </form>
-  </div>
+    <div class="form-actions">
+      <a href="{{ url_for('students.list_students') }}" class="btn-secondary">Cancel</a>
+      {{ form.submit(class_='btn-primary') }}
+    </div>
+  </form>
 </div>
 {% endblock %}
