@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import BooleanField, StringField, PasswordField, SelectField, DateField, SubmitField, TextAreaField
-from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional, ValidationError
+from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional, Regexp, ValidationError
 
 from .models import Course, Student
 
@@ -41,7 +41,10 @@ class StudentForm(FlaskForm):
     first_name = StringField("First Name", validators=[DataRequired(), Length(min=2, max=80)])
     last_name = StringField("Last Name", validators=[DataRequired(), Length(min=2, max=80)])
     email = StringField("Email", validators=[DataRequired(), Email(), Length(max=120)])
-    phone = StringField("Phone Number", validators=[DataRequired(), Length(min=7, max=30)])
+    phone = StringField(
+        "Phone Number",
+        validators=[DataRequired(), Regexp(r"^[0-9]{11}$", message="Phone number must contain exactly 11 digits.")],
+    )
     date_of_birth = DateField("Date of Birth", validators=[DataRequired()])
     gender = SelectField("Gender", choices=[("", "Select gender"), ("Male", "Male"), ("Female", "Female"), ("Other", "Other")], validators=[Optional()])
     course_id = SelectField("Course", coerce=int, validators=[DataRequired()])

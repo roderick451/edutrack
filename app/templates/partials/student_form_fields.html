@@ -50,7 +50,7 @@
     </div>
     <div class="form-field">
       <label for="{{ form.phone.id }}">Phone Number <span class="required-mark">*</span></label>
-      {{ form.phone(class_='input-field', placeholder='Enter phone number') }}
+      {{ form.phone(class_='input-field', type='tel', inputmode='numeric', minlength='11', maxlength='11', pattern='[0-9]{11}', placeholder='11-digit phone number') }}
       {% for error in form.phone.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
     </div>
   </div>

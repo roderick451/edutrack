@@ -171,6 +171,38 @@ def test_student_list_modal_creates_student(app, client):
     assert Student.query.filter_by(email='alex.rivera@gmail.com').count() == 1
 
 
+@pytest.mark.parametrize('phone', ['0912345678', '091234567890', '09123abc789'])
+def test_student_phone_requires_exactly_11_digits(app, client, phone):
+    with app.app_context():
+        course = Course(course_code='CS101', course_name='Intro to Computing')
+        user = User(username='admin', email='admin@example.com', password_hash=generate_password_hash('admin123'))
+        db.session.add_all([course, user])
+        db.session.commit()
+        course_id = course.id
+        user_id = user.id
+
+    with client.session_transaction() as sess:
+        sess['_user_id'] = str(user_id)
+        sess['_fresh'] = True
+
+    response = client.post('/students/new', data={
+        'student_id': 'STU-103',
+        'first_name': 'Alex',
+        'last_name': 'Rivera',
+        'email': 'alex.rivera@gmail.com',
+        'phone': phone,
+        'date_of_birth': '2001-06-10',
+        'gender': 'Other',
+        'course_id': str(course_id),
+        'year_level': '1st Year',
+        'enrollment_status': 'Active',
+    })
+    assert response.status_code == 200
+    assert b'Phone number must contain exactly 11 digits.' in response.data
+    with app.app_context():
+        assert Student.query.filter_by(student_id='STU-103').count() == 0
+
+
 def test_student_list_view_and_edit_modals(app, client):
     with app.app_context():
         course = Course(course_code='CS101', course_name='Intro to Computing')
