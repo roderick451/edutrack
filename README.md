@@ -6,8 +6,11 @@ EduTrack is a modern Flask-based student record management system designed for a
 - Admin authentication with hashed passwords
 - Dashboard with live database totals and charts
 - Student CRUD with validation and search filters
-- Course management and assignment tracking
+- Course management with search and enrollment counts
+- Reports and enrollment summaries based on live database records
 - CSV export for student records
+- Admin account settings with current-password verification and optional password updates
+- Light/dark appearance toggle and responsive navigation
 - Responsive SaaS-style layout
 - PostgreSQL support with SQLAlchemy
 - Local development and Render deployment setup
@@ -67,6 +70,8 @@ python scripts\seed.py
 ## Deployment
 - Use Render with a PostgreSQL database and the Gunicorn start command.
 - Set `DATABASE_URL`, `SECRET_KEY`, and `FLASK_ENV=production` as environment variables.
+- The dashboard totals and report values come from the deployed database. Use `python scripts\seed.py` only when you intentionally want sample records in a development database.
+- Password recovery email is not configured; the sign-in help page directs admins to their deployment administrator.
 
 ## Testing
 ```powershell

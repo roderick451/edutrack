@@ -8,7 +8,7 @@
   <section class="dashboard-welcome">
     <div>
       <p class="eyebrow-label">Your academic overview</p>
-      <h2>Good day, {{ current_user.username|capitalize }}! <span aria-hidden="true">👋</span></h2>
+      <h2><span data-greeting>Good morning</span>, {{ current_user.username|capitalize }}! <span aria-hidden="true">👋</span></h2>
       <p>Here’s what’s happening in your student management system today.</p>
     </div>
     <a href="{{ url_for('students.new_student') }}" class="btn-primary">

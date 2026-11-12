@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Settings | EduTrack{% endblock %}
+{% block page_title %}Settings{% endblock %}
+
+{% block content %}
+<div class="form-page">
+  <div class="page-heading-row">
+    <div>
+      <p class="eyebrow-label">Administrator preferences</p>
+      <h2 class="section-title">Account Settings</h2>
+      <p class="section-subtitle">Update your admin account details and password.</p>
+    </div>
+  </div>
+
+  <form method="POST" novalidate class="settings-form panel">
+    {{ form.hidden_tag() }}
+    <div class="form-section-title">
+      <span class="section-icon"><i data-lucide="user-round-cog"></i></span>
+      <div><h3>Administrator Account</h3><p>Confirm your current password to save account changes.</p></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="{{ form.username.id }}">Username</label>
+        {{ form.username(class_='input-field', autocomplete='username') }}
+        {% for error in form.username.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
+      </div>
+      <div class="form-field">
+        <label for="{{ form.email.id }}">Email</label>
+        {{ form.email(class_='input-field', autocomplete='email') }}
+        {% for error in form.email.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
+      </div>
+      <div class="form-field">
+        <label for="{{ form.current_password.id }}">Current Password</label>
+        {{ form.current_password(class_='input-field', autocomplete='current-password') }}
+        {% for error in form.current_password.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
+      </div>
+      <div class="form-field">
+        <label for="{{ form.new_password.id }}">New Password <span class="field-hint">Optional</span></label>
+        {{ form.new_password(class_='input-field', autocomplete='new-password', placeholder='At least 8 characters') }}
+        {% for error in form.new_password.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
+      </div>
+      <div class="form-field form-field-wide">
+        <label for="{{ form.confirm_password.id }}">Confirm New Password</label>
+        {{ form.confirm_password(class_='input-field', autocomplete='new-password') }}
+        {% for error in form.confirm_password.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
+      </div>
+    </div>
+    <div class="form-actions">
+      {{ form.submit(class_='btn-primary') }}
+    </div>
+  </form>
+</div>
+{% endblock %}

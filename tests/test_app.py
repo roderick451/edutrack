@@ -31,6 +31,8 @@ def client(app):
 def test_login_page_loads(client):
     response = client.get('/login')
     assert response.status_code == 200
+    assert b'Remember me' in response.data
+    assert b'Forgot password?' in response.data
 
 
 def test_protected_dashboard_requires_login(client):
@@ -51,8 +53,41 @@ def test_authenticated_dashboard_renders_reference_sections(app, client):
 
     response = client.get('/dashboard')
     assert response.status_code == 200
-    assert b'Good day, Admin!' in response.data
+    assert b'data-greeting>Good morning</span>, Admin!' in response.data
     assert b'Student Distribution by Course' in response.data
+    assert b'/reports' in response.data
+    assert b'/settings' in response.data
+
+
+def test_admin_can_update_account_settings(app, client):
+    with app.app_context():
+        user = User(username='admin', email='admin@example.com', password_hash=generate_password_hash('admin123'))
+        db.session.add(user)
+        db.session.commit()
+        user_id = user.id
+
+    with client.session_transaction() as sess:
+        sess['_user_id'] = str(user_id)
+        sess['_fresh'] = True
+
+    response = client.post('/settings', data={
+        'username': 'newadmin',
+        'email': 'newadmin@example.com',
+        'current_password': 'admin123',
+        'new_password': 'newpassword123',
+        'confirm_password': 'newpassword123',
+    }, follow_redirects=True)
+    assert response.status_code == 200
+    assert b'Account settings updated successfully.' in response.data
+    with app.app_context():
+        user = User.query.get(user_id)
+        assert user.username == 'newadmin'
+        assert user.email == 'newadmin@example.com'
+        assert user.verify_password('newpassword123')
+
+
+def test_reports_and_password_help_pages(client):
+    assert client.get('/forgot-password').status_code == 200
 
 
 def test_create_admin_account(client):
@@ -139,10 +174,14 @@ def test_course_crud(app, client):
     response = client.get('/courses')
     assert response.status_code == 200
     assert b'Course Management' in response.data
+    response = client.get('/courses?q=algorithm')
+    assert response.status_code == 200
+    assert b'No courses match your search.' in response.data
 
     response = client.post('/courses/new', data={'course_code': 'CS102', 'course_name': 'Algorithms', 'description': 'Algorithm design'}, follow_redirects=True)
     assert response.status_code == 200
     assert Course.query.filter_by(course_code='CS102').count() == 1
+    assert client.get('/reports').status_code == 200
 
 
 def test_search_and_filtering(app, client):

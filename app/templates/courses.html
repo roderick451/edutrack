@@ -17,6 +17,16 @@
   </div>
 
   <div class="panel records-panel">
+    <div class="records-toolbar">
+      <form method="GET" class="filter-form course-search-form">
+        <label class="search-control">
+          <i data-lucide="search"></i>
+          <input type="text" name="q" value="{{ search_query }}" placeholder="Search courses by code or name..." aria-label="Search courses by code or name" />
+        </label>
+        <button type="submit" class="btn-secondary filter-submit"><i data-lucide="search"></i> Search</button>
+        <a href="{{ url_for('courses.list_courses') }}" class="btn-secondary filter-reset"><i data-lucide="rotate-ccw"></i> Reset</a>
+      </form>
+    </div>
     <div class="table-scroll">
       <table class="table-fixed course-table">
         <thead>
@@ -49,8 +59,10 @@
           <tr>
             <td colspan="5">
               <div class="empty-state">
-                <p>No courses available yet.</p>
+                <p>{{ 'No courses match your search.' if search_query else 'No courses available yet.' }}</p>
+                {% if not search_query %}
                 <a href="{{ url_for('courses.new_course') }}" class="mini-link">Add the first course</a>
+                {% endif %}
               </div>
             </td>
           </tr>
@@ -59,7 +71,7 @@
       </table>
     </div>
     <div class="table-footer">
-      <span>Showing {{ courses|length }} of {{ courses|length }} courses</span>
+      <span>Showing {{ courses|length }} courses{% if search_query %} matching “{{ search_query }}”{% endif %}</span>
     </div>
   </div>
 </div>

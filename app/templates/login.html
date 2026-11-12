@@ -11,8 +11,8 @@
           <img src="{{ url_for('static', filename='images/edutrack-logo.svg') }}" alt="EduTrack logo" />
         </div>
         <div class="login-brand-copy">
-          <span class="eyebrow">Student Record Management System</span>
           <h1>EduTrack</h1>
+          <span class="eyebrow">Student Record Management System</span>
         </div>
       </div>
 
@@ -26,21 +26,21 @@
           <span class="feature-icon"><i data-lucide="folder-open"></i></span>
           <div>
             <h3>Student Records</h3>
-            <p>Keep student data organized.</p>
+            <p>Keep student data<br />organized.</p>
           </div>
         </div>
         <div class="feature-item">
           <span class="feature-icon"><i data-lucide="book-open-check"></i></span>
           <div>
             <h3>Course Management</h3>
-            <p>Add, update, and monitor courses.</p>
+            <p>Add, update, and<br />monitor courses.</p>
           </div>
         </div>
         <div class="feature-item">
           <span class="feature-icon"><i data-lucide="download"></i></span>
           <div>
             <h3>Reports &amp; Export</h3>
-            <p>Generate and download reports.</p>
+            <p>Generate and<br />download reports.</p>
           </div>
         </div>
       </div>
@@ -50,8 +50,9 @@
 
   <div class="login-card-wrap">
     <div class="login-card">
-      <div class="login-card-logo">
-        <img src="{{ url_for('static', filename='images/edutrack-logo.svg') }}" alt="EduTrack logo" />
+      <div class="login-card-brand">
+        <img src="{{ url_for('static', filename='images/edutrack-logo.svg') }}" alt="" />
+        <strong>EduTrack</strong>
       </div>
 
       <div class="login-header">
@@ -66,7 +67,7 @@
           <label for="username">Username</label>
           <div class="input-shell">
             <span class="input-icon"><i data-lucide="user-round"></i></span>
-            {{ form.username(class_='input-field', id='username', placeholder='admin') }}
+            {{ form.username(class_='input-field', id='username', placeholder='Username', autocomplete='username') }}
           </div>
           {% for error in form.username.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
         </div>
@@ -75,16 +76,23 @@
           <label for="password">Password</label>
           <div class="input-shell password-shell">
             <span class="input-icon"><i data-lucide="lock"></i></span>
-            {{ form.password(class_='input-field', id='password', placeholder='••••••••') }}
+            {{ form.password(class_='input-field', id='password', placeholder='Password', autocomplete='current-password') }}
             <button type="button" class="password-toggle" data-password-toggle aria-label="Show password">Show</button>
           </div>
           {% for error in form.password.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
         </div>
 
+        {% if not setup_mode %}
+        <div class="login-options">
+          <label class="remember-option">{{ form.remember_me() }} <span>Remember me</span></label>
+          <a href="{{ url_for('auth.forgot_password') }}">Forgot password?</a>
+        </div>
+        {% endif %}
+
         <button type="submit" class="btn-primary btn-login">{{ 'Create Admin' if setup_mode else 'Sign In' }}</button>
 
         {% if not setup_mode %}
-        <p class="login-help">Need help? Use the first admin setup script.</p>
+        <p class="login-help">EduTrack — Student Record Management System</p>
         {% endif %}
       </form>
     </div>

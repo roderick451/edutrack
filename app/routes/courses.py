@@ -12,8 +12,16 @@ courses_bp = Blueprint("courses", __name__)
 @courses_bp.route("/courses")
 @login_required
 def list_courses():
-    courses = Course.query.order_by(Course.course_name.asc()).all()
-    return render_template("courses.html", courses=courses)
+    search_query = request.args.get("q", "", type=str).strip()
+    query = Course.query
+    if search_query:
+        query = query.filter(
+            Course.course_code.ilike(f"%{search_query}%")
+            | Course.course_name.ilike(f"%{search_query}%")
+            | Course.description.ilike(f"%{search_query}%")
+        )
+    courses = query.order_by(Course.course_name.asc()).all()
+    return render_template("courses.html", courses=courses, search_query=search_query)
 
 
 @courses_bp.route("/courses/new", methods=["GET", "POST"])

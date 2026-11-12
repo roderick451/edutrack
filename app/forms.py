@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SelectField, DateField, SubmitField, TextAreaField
-from wtforms.validators import DataRequired, Email, Length, Optional, ValidationError
+from wtforms import BooleanField, StringField, PasswordField, SelectField, DateField, SubmitField, TextAreaField
+from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional, ValidationError
 
 from .models import Course, Student
 
@@ -8,7 +8,17 @@ from .models import Course, Student
 class LoginForm(FlaskForm):
     username = StringField("Username", validators=[DataRequired(), Length(min=3, max=80)])
     password = PasswordField("Password", validators=[DataRequired(), Length(min=6)])
+    remember_me = BooleanField("Remember me")
     submit = SubmitField("Login")
+
+
+class AdminSettingsForm(FlaskForm):
+    username = StringField("Username", validators=[DataRequired(), Length(min=3, max=80)])
+    email = StringField("Email", validators=[DataRequired(), Email(), Length(max=120)])
+    current_password = PasswordField("Current password", validators=[DataRequired()])
+    new_password = PasswordField("New password", validators=[Optional(), Length(min=8)])
+    confirm_password = PasswordField("Confirm new password", validators=[Optional(), EqualTo("new_password", message="Passwords do not match.")])
+    submit = SubmitField("Save Changes")
 
 
 class CourseForm(FlaskForm):

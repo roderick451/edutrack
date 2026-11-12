@@ -3,7 +3,7 @@ from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db
-from app.forms import LoginForm
+from app.forms import AdminSettingsForm, LoginForm
 from app.models import User
 
 
@@ -20,11 +20,16 @@ def login():
         username = form.username.data.strip()
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password_hash, form.password.data):
-            login_user(user, remember=True)
+            login_user(user, remember=form.remember_me.data)
             flash("Welcome back!", "success")
             return redirect(url_for("dashboard.index"))
         flash("Invalid username or password.", "error")
     return render_template("login.html", form=form)
+
+
+@auth_bp.route("/forgot-password")
+def forgot_password():
+    return render_template("forgot_password.html")
 
 
 @auth_bp.route("/logout")
@@ -33,6 +38,35 @@ def logout():
     logout_user()
     flash("You have been logged out.", "success")
     return redirect(url_for("auth.login"))
+
+
+@auth_bp.route("/settings", methods=["GET", "POST"])
+@login_required
+def settings():
+    form = AdminSettingsForm(obj=current_user)
+    if form.validate_on_submit():
+        if not current_user.verify_password(form.current_password.data):
+            form.current_password.errors.append("Current password is incorrect.")
+            return render_template("settings.html", form=form)
+
+        username = form.username.data.strip()
+        email = form.email.data.strip().lower()
+        if User.query.filter(User.username == username, User.id != current_user.id).first():
+            form.username.errors.append("That username is already in use.")
+        if User.query.filter(User.email == email, User.id != current_user.id).first():
+            form.email.errors.append("That email address is already in use.")
+        if form.username.errors or form.email.errors:
+            return render_template("settings.html", form=form)
+
+        current_user.username = username
+        current_user.email = email
+        if form.new_password.data:
+            current_user.password_hash = generate_password_hash(form.new_password.data)
+        db.session.commit()
+        flash("Account settings updated successfully.", "success")
+        return redirect(url_for("auth.settings"))
+
+    return render_template("settings.html", form=form)
 
 
 @auth_bp.route("/setup-admin", methods=["GET", "POST"])

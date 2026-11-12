@@ -1,4 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
+  const greeting = document.querySelector('[data-greeting]');
+  if (greeting) {
+    const hour = new Date().getHours();
+    greeting.textContent = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  }
+
   const dateLabel = document.querySelector('[data-current-date]');
   if (dateLabel) {
     dateLabel.textContent = new Intl.DateTimeFormat(undefined, {
@@ -47,8 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const sidebarNav = document.querySelector('.sidebar-nav');
   if (mobileToggle && sidebarNav) {
     mobileToggle.addEventListener('click', () => {
-      const isVisible = sidebarNav.style.display === 'flex';
-      sidebarNav.style.display = isVisible ? 'none' : 'flex';
+      const isVisible = sidebarNav.classList.toggle('is-open');
+      mobileToggle.setAttribute('aria-expanded', String(isVisible));
     });
   }
 
