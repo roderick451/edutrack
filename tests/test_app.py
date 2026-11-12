@@ -171,6 +171,68 @@ def test_student_list_modal_creates_student(app, client):
     assert Student.query.filter_by(email='alex.rivera@gmail.com').count() == 1
 
 
+def test_student_list_view_and_edit_modals(app, client):
+    with app.app_context():
+        course = Course(course_code='CS101', course_name='Intro to Computing')
+        db.session.add(course)
+        db.session.flush()
+        student = Student(
+            student_id='STU-102',
+            first_name='Maya',
+            last_name='Santos',
+            email='maya.santos@gmail.com',
+            phone='09171234567',
+            date_of_birth=date(2002, 4, 10),
+            gender='Female',
+            course_id=course.id,
+            year_level='2nd Year',
+            enrollment_status='Active',
+        )
+        user = User(username='admin', email='admin@example.com', password_hash=generate_password_hash('admin123'))
+        db.session.add_all([student, user])
+        db.session.commit()
+        student_id = student.id
+        user_id = user.id
+
+    with client.session_transaction() as sess:
+        sess['_user_id'] = str(user_id)
+        sess['_fresh'] = True
+
+    response = client.get('/students')
+    assert response.status_code == 200
+    assert f'id="view-student-{student_id}"'.encode() in response.data
+    assert f'id="edit-student-{student_id}"'.encode() in response.data
+    assert f'name="student-{student_id}-first_name"'.encode() in response.data
+    assert b'Academic Information' in response.data
+    assert b'maya.santos@gmail.com' in response.data
+
+    response = client.get(f'/students?modal=edit&id={student_id}')
+    assert response.status_code == 200
+    edit_dialog = response.data.split(f'id="edit-student-{student_id}"'.encode(), 1)[1].split(b'>', 1)[0]
+    assert b'data-open-on-load="true"' in edit_dialog
+
+    response = client.post('/students', data={
+        'editing_student_id': str(student_id),
+        f'student-{student_id}-student_id': 'STU-102',
+        f'student-{student_id}-first_name': 'Maya',
+        f'student-{student_id}-last_name': 'Reyes',
+        f'student-{student_id}-email': 'maya.reyes@gmail.com',
+        f'student-{student_id}-phone': '09171234567',
+        f'student-{student_id}-date_of_birth': '2002-04-10',
+        f'student-{student_id}-gender': 'Female',
+        f'student-{student_id}-course_id': '1',
+        f'student-{student_id}-year_level': '2nd Year',
+        f'student-{student_id}-enrollment_status': 'Active',
+        f'student-{student_id}-submit': 'Save Changes',
+    }, follow_redirects=True)
+    assert response.status_code == 200
+    assert b'Student record updated successfully.' in response.data
+    with app.app_context():
+        student = db.session.get(Student, student_id)
+        assert student.last_name == 'Reyes'
+        assert student.email == 'maya.reyes@gmail.com'
+
+
 def test_duplicate_student_id_prevention(app, client):
     with app.app_context():
         course = Course(course_code='CS201', course_name='Data Structures', description='Data structures basics')

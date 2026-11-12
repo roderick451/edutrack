@@ -78,8 +78,8 @@
             <td>{{ record.created_at.strftime('%b %d, %Y') }}</td>
             <td>
               <div class="table-actions">
-                <a href="{{ url_for('students.student_profile', student_id=record.id) }}" class="icon-button" title="View student"><i data-lucide="eye"></i></a>
-                <a href="{{ url_for('students.edit_student', student_id=record.id) }}" class="icon-button" title="Edit student"><i data-lucide="pencil"></i></a>
+                <button type="button" class="icon-button" title="View student" aria-label="View {{ record.full_name }}" data-modal-open="view-student-{{ record.id }}"><i data-lucide="eye"></i></button>
+                <button type="button" class="icon-button" title="Edit student" aria-label="Edit {{ record.full_name }}" data-modal-open="edit-student-{{ record.id }}"><i data-lucide="pencil"></i></button>
                 <form action="{{ url_for('students.delete_student', student_id=record.id) }}" method="POST" onsubmit="return confirm('Delete this student record?');">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                   <button type="submit" class="icon-button danger" title="Delete student"><i data-lucide="trash-2"></i></button>
@@ -117,7 +117,81 @@
   </div>
 </div>
 
-<dialog class="record-modal student-record-modal" id="student-modal" aria-labelledby="student-modal-title" data-open-on-load="{{ 'true' if open_student_modal else 'false' }}">
+{% for record in students.items %}
+<dialog class="record-modal student-view-modal" id="view-student-{{ record.id }}" aria-labelledby="view-student-title-{{ record.id }}">
+  <div class="record-modal-header">
+    <div class="student-modal-heading">
+      <span class="initial-badge">{{ record.first_name[0]|upper }}{{ record.last_name[0]|upper }}</span>
+      <div>
+        <p class="eyebrow-label">Student record management</p>
+        <h2 id="view-student-title-{{ record.id }}">{{ record.full_name }}</h2>
+        <p class="section-subtitle">Student ID: {{ record.student_id }}</p>
+      </div>
+    </div>
+    <button type="button" class="icon-button" data-modal-close aria-label="Close student details"><i data-lucide="x"></i></button>
+  </div>
+  <div class="student-detail-grid">
+    <section class="student-detail-section">
+      <h3><i data-lucide="user-round"></i> Personal Information</h3>
+      <div class="student-detail-list">
+        <div class="student-detail"><span>Full Name</span><strong>{{ record.full_name }}</strong></div>
+        <div class="student-detail"><span>Student ID</span><strong>{{ record.student_id }}</strong></div>
+        <div class="student-detail"><span>Date of Birth</span><strong>{{ record.date_of_birth.strftime('%B %d, %Y') }}</strong></div>
+        <div class="student-detail"><span>Gender</span><strong>{{ record.gender or 'Not provided' }}</strong></div>
+      </div>
+    </section>
+    <section class="student-detail-section">
+      <h3><i data-lucide="contact-round"></i> Contact Information</h3>
+      <div class="student-detail-list">
+        <div class="student-detail"><span>Email Address</span><strong class="student-detail-email">{{ record.email }}</strong></div>
+        <div class="student-detail"><span>Phone Number</span><strong>{{ record.phone }}</strong></div>
+      </div>
+    </section>
+    <section class="student-detail-section student-detail-section-wide">
+      <h3><i data-lucide="graduation-cap"></i> Academic Information</h3>
+      <div class="student-detail-list student-academic-details">
+        <div class="student-detail"><span>Course</span><strong>{{ record.course.course_name }}</strong></div>
+        <div class="student-detail"><span>Course Code</span><strong>{{ record.course.course_code }}</strong></div>
+        <div class="student-detail"><span>Year Level</span><strong>{{ record.year_level }}</strong></div>
+        <div class="student-detail">
+          <span>Enrollment Status</span>
+          <strong><span class="status-badge {% if record.enrollment_status == 'Active' %}status-active{% elif record.enrollment_status == 'Graduated' %}status-graduated{% else %}status-inactive{% endif %}">{{ record.enrollment_status }}</span></strong>
+        </div>
+        <div class="student-detail"><span>Date Added</span><strong>{{ record.created_at.strftime('%B %d, %Y') }}</strong></div>
+      </div>
+    </section>
+    <div class="student-detail-actions">
+      <button type="button" class="btn-secondary" data-modal-close>Close</button>
+      <button type="button" class="btn-primary" data-modal-close data-modal-open="edit-student-{{ record.id }}"><i data-lucide="pencil"></i> Edit Student</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="record-modal student-record-modal" id="edit-student-{{ record.id }}" aria-labelledby="edit-student-title-{{ record.id }}" data-open-on-load="{{ 'true' if modal_to_open == 'edit-student-' ~ record.id else 'false' }}">
+  <div class="record-modal-header">
+    <div>
+      <p class="eyebrow-label">Student record management</p>
+      <h2 id="edit-student-title-{{ record.id }}">Edit Student</h2>
+      <p class="section-subtitle">Update {{ record.full_name }}’s student, contact, and academic information.</p>
+    </div>
+    <button type="button" class="icon-button" data-modal-close aria-label="Close edit student dialog"><i data-lucide="x"></i></button>
+  </div>
+  {% set edit_form = edit_forms[record.id] %}
+  <form method="POST" action="{{ url_for('students.list_students') }}" novalidate class="modal-student-form">
+    {{ edit_form.hidden_tag() }}
+    <input type="hidden" name="editing_student_id" value="{{ record.id }}" />
+    {% with form = edit_form %}
+      {% include 'partials/student_form_fields.html' %}
+    {% endwith %}
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" data-modal-close>Cancel</button>
+      {{ edit_form.submit(class_='btn-primary', value='Save Changes') }}
+    </div>
+  </form>
+</dialog>
+{% endfor %}
+
+<dialog class="record-modal student-record-modal" id="student-modal" aria-labelledby="student-modal-title" data-open-on-load="{{ 'true' if modal_to_open == 'student-modal' else 'false' }}">
   <div class="record-modal-header">
     <div>
       <p class="eyebrow-label">Student record management</p>

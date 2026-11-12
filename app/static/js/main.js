@@ -61,7 +61,16 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[data-modal-open]').forEach((button) => {
     button.addEventListener('click', () => {
       const dialog = document.getElementById(button.dataset.modalOpen);
-      if (dialog instanceof HTMLDialogElement && !dialog.open) dialog.showModal();
+      if (!(dialog instanceof HTMLDialogElement) || dialog.open) return;
+
+      const currentDialog = button.closest('dialog[open]');
+      if (currentDialog instanceof HTMLDialogElement) {
+        currentDialog.addEventListener('close', () => dialog.showModal(), { once: true });
+        currentDialog.close();
+        return;
+      }
+
+      dialog.showModal();
     });
   });
 
