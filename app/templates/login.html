@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Login | EduTrack{% endblock %}
+{% block auth_content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-100 via-indigo-50 to-violet-100 flex items-center justify-center p-6">
+  <div class="w-full max-w-md bg-white/90 border border-slate-200 rounded-3xl shadow-soft p-8 backdrop-blur-sm">
+    <div class="flex items-center justify-center gap-3 mb-8">
+      <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-xl font-bold text-white">E</div>
+      <div>
+        <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Secure access</p>
+        <h1 class="text-2xl font-bold">EduTrack</h1>
+      </div>
+    </div>
+
+    <h2 class="text-2xl font-bold mb-2">{{ 'Create Admin' if setup_mode else 'Welcome back' }}</h2>
+    <p class="text-slate-600 mb-6">{{ 'Set up your first secure administrator account.' if setup_mode else 'Sign in to manage student records.' }}</p>
+
+    <form method="POST" novalidate class="space-y-5">
+      {{ form.hidden_tag() }}
+      <div>
+        <label class="label-text">Username</label>
+        {{ form.username(class_='input-field', placeholder='admin') }}
+        {% for error in form.username.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
+      </div>
+      <div>
+        <label class="label-text">Password</label>
+        {{ form.password(class_='input-field', placeholder='••••••••') }}
+        {% for error in form.password.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
+      </div>
+      <button type="submit" class="btn-primary w-full">{{ 'Create Admin' if setup_mode else 'Login' }}</button>
+      {% if not setup_mode %}
+      <p class="text-center text-sm text-slate-500">Need help? Use the first admin setup script.</p>
+      {% endif %}
+    </form>
+  </div>
+</div>
+{% endblock %}

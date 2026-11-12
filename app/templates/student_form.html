@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} | EduTrack{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <div class="panel">
+    <form method="POST" novalidate class="space-y-6">
+      {{ form.hidden_tag() }}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div>
+          <label class="label-text">Student ID</label>
+          {{ form.student_id(class_='input-field') }}
+          {% for error in form.student_id.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
+        </div>
+        <div>
+          <label class="label-text">Email</label>
+          {{ form.email(class_='input-field') }}
+          {% for error in form.email.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
+        </div>
+        <div>
+          <label class="label-text">First Name</label>
+          {{ form.first_name(class_='input-field') }}
+          {% for error in form.first_name.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
+        </div>
+        <div>
+          <label class="label-text">Last Name</label>
+          {{ form.last_name(class_='input-field') }}
+          {% for error in form.last_name.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
+        </div>
+        <div>
+          <label class="label-text">Phone Number</label>
+          {{ form.phone(class_='input-field') }}
+          {% for error in form.phone.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
+        </div>
+        <div>
+          <label class="label-text">Date of Birth</label>
+          {{ form.date_of_birth(class_='input-field', type='date') }}
+          {% for error in form.date_of_birth.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
+        </div>
+        <div>
+          <label class="label-text">Gender</label>
+          {{ form.gender(class_='input-field') }}
+        </div>
+        <div>
+          <label class="label-text">Course</label>
+          {{ form.course_id(class_='input-field') }}
+          {% for error in form.course_id.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
+        </div>
+        <div>
+          <label class="label-text">Year Level</label>
+          {{ form.year_level(class_='input-field') }}
+          {% for error in form.year_level.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
+        </div>
+        <div>
+          <label class="label-text">Enrollment Status</label>
+          {{ form.enrollment_status(class_='input-field') }}
+          {% for error in form.enrollment_status.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3 pt-4 border-t border-slate-200">
+        <a href="{{ url_for('students.list_students') }}" class="btn-secondary">Cancel</a>
+        {{ form.submit(class_='btn-primary') }}
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

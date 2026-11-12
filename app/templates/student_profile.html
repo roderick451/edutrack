@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ student.full_name }} | EduTrack{% endblock %}
+{% block page_title %}Student Profile{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+  <div class="panel">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Student</p>
+        <h2 class="text-3xl font-bold text-slate-900">{{ student.full_name }}</h2>
+      </div>
+      <div class="flex gap-2">
+        <a href="{{ url_for('students.edit_student', student_id=student.id) }}" class="btn-secondary">Edit</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="panel">
+      <div class="panel-header">
+        <h3>Profile Details</h3>
+      </div>
+      <div class="space-y-4 text-slate-700">
+        <div class="detail-row"><span>Student ID</span><strong>{{ student.student_id }}</strong></div>
+        <div class="detail-row"><span>Email</span><strong>{{ student.email }}</strong></div>
+        <div class="detail-row"><span>Phone</span><strong>{{ student.phone }}</strong></div>
+        <div class="detail-row"><span>Date of Birth</span><strong>{{ student.date_of_birth.strftime('%Y-%m-%d') }}</strong></div>
+        <div class="detail-row"><span>Gender</span><strong>{{ student.gender or 'Not provided' }}</strong></div>
+        <div class="detail-row"><span>Course</span><strong>{{ student.course.course_name }}</strong></div>
+        <div class="detail-row"><span>Year Level</span><strong>{{ student.year_level }}</strong></div>
+        <div class="detail-row"><span>Status</span><strong>{{ student.enrollment_status }}</strong></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h3>Academic Summary</h3>
+      </div>
+      <div class="space-y-4">
+        <div class="rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-500 p-4 text-white">
+          <p class="text-sm uppercase tracking-[0.2em] text-indigo-100">Enrollment</p>
+          <p class="text-3xl font-bold mt-2">{{ student.enrollment_status }}</p>
+        </div>
+        <div class="rounded-2xl bg-slate-100 p-4">
+          <p class="text-sm text-slate-500">Course Code</p>
+          <p class="text-lg font-semibold text-slate-800">{{ student.course.course_code }}</p>
+        </div>
+        <div class="rounded-2xl bg-slate-100 p-4">
+          <p class="text-sm text-slate-500">Last Updated</p>
+          <p class="text-lg font-semibold text-slate-800">{{ student.updated_at.strftime('%Y-%m-%d') }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
