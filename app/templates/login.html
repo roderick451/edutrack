@@ -2,36 +2,92 @@
 
 {% block title %}Login | EduTrack{% endblock %}
 {% block auth_content %}
-<div class="min-h-screen bg-gradient-to-br from-slate-100 via-indigo-50 to-violet-100 flex items-center justify-center p-6">
-  <div class="w-full max-w-md bg-white/90 border border-slate-200 rounded-3xl shadow-soft p-8 backdrop-blur-sm">
-    <div class="flex items-center justify-center gap-3 mb-8">
-      <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-xl font-bold text-white">E</div>
-      <div>
-        <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Secure access</p>
-        <h1 class="text-2xl font-bold">EduTrack</h1>
+<div class="login-page">
+  <div class="login-visual">
+    <div class="login-visual-overlay"></div>
+    <div class="login-visual-content">
+      <div class="login-brand-row">
+        <div class="login-brand-mark">
+          <img src="{{ url_for('static', filename='images/edutrack-logo.svg') }}" alt="EduTrack logo" />
+        </div>
+        <div class="login-brand-copy">
+          <span class="eyebrow">Student Record Management System</span>
+          <h1>EduTrack</h1>
+        </div>
+      </div>
+
+      <div class="login-copy">
+        <h2>Smarter Student Management Starts Here.</h2>
+        <p>Manage student information, courses, and enrollments efficiently, securely, and in one place.</p>
+      </div>
+
+      <div class="feature-list">
+        <div class="feature-item">
+          <span class="feature-icon"><i data-lucide="folder-open"></i></span>
+          <div>
+            <h3>Student Records</h3>
+            <p>Keep student data organized.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon"><i data-lucide="book-open-check"></i></span>
+          <div>
+            <h3>Course Management</h3>
+            <p>Add, update, and monitor courses.</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <span class="feature-icon"><i data-lucide="download"></i></span>
+          <div>
+            <h3>Reports &amp; Export</h3>
+            <p>Generate and download reports.</p>
+          </div>
+        </div>
       </div>
     </div>
+    <div class="login-wave"></div>
+  </div>
 
-    <h2 class="text-2xl font-bold mb-2">{{ 'Create Admin' if setup_mode else 'Welcome back' }}</h2>
-    <p class="text-slate-600 mb-6">{{ 'Set up your first secure administrator account.' if setup_mode else 'Sign in to manage student records.' }}</p>
+  <div class="login-card-wrap">
+    <div class="login-card">
+      <div class="login-card-logo">
+        <img src="{{ url_for('static', filename='images/edutrack-logo.svg') }}" alt="EduTrack logo" />
+      </div>
 
-    <form method="POST" novalidate class="space-y-5">
-      {{ form.hidden_tag() }}
-      <div>
-        <label class="label-text">Username</label>
-        {{ form.username(class_='input-field', placeholder='admin') }}
-        {% for error in form.username.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
+      <div class="login-header">
+        <h2>{{ 'Create Admin' if setup_mode else 'Welcome Back!' }}</h2>
+        <p>{{ 'Set up your first secure administrator account.' if setup_mode else 'Sign in to your EduTrack account to manage student records.' }}</p>
       </div>
-      <div>
-        <label class="label-text">Password</label>
-        {{ form.password(class_='input-field', placeholder='••••••••') }}
-        {% for error in form.password.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
-      </div>
-      <button type="submit" class="btn-primary w-full">{{ 'Create Admin' if setup_mode else 'Login' }}</button>
-      {% if not setup_mode %}
-      <p class="text-center text-sm text-slate-500">Need help? Use the first admin setup script.</p>
-      {% endif %}
-    </form>
+
+      <form method="POST" novalidate class="login-form">
+        {{ form.hidden_tag() }}
+
+        <div class="form-field">
+          <label for="username">Username</label>
+          <div class="input-shell">
+            <span class="input-icon"><i data-lucide="user-round"></i></span>
+            {{ form.username(class_='input-field', id='username', placeholder='admin') }}
+          </div>
+          {% for error in form.username.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
+        </div>
+
+        <div class="form-field">
+          <label for="password">Password</label>
+          <div class="input-shell password-shell">
+            <span class="input-icon"><i data-lucide="lock"></i></span>
+            {{ form.password(class_='input-field', id='password', placeholder='••••••••') }}
+            <button type="button" class="password-toggle" data-password-toggle aria-label="Show password">Show</button>
+          </div>
+          {% for error in form.password.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
+        </div>
+
+        <button type="submit" class="btn-primary btn-login">{{ 'Create Admin' if setup_mode else 'Sign In' }}</button>
+
+        {% if not setup_mode %}
+        <p class="login-help">Need help? Use the first admin setup script.</p>
+        {% endif %}
+      </form>
+    </div>
   </div>
 </div>
 {% endblock %}

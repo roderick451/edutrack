@@ -10,11 +10,24 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   const mobileToggle = document.querySelector('.mobile-toggle');
-  const sidebar = document.querySelector('.sidebar');
-  if (mobileToggle && sidebar) {
+  const sidebarNav = document.querySelector('.sidebar-nav');
+  if (mobileToggle && sidebarNav) {
     mobileToggle.addEventListener('click', () => {
-      sidebar.classList.toggle('hidden');
-      sidebar.classList.toggle('md:block');
+      const isVisible = sidebarNav.style.display === 'flex';
+      sidebarNav.style.display = isVisible ? 'none' : 'flex';
     });
   }
+
+  const passwordButtons = document.querySelectorAll('[data-password-toggle]');
+  passwordButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const field = button.closest('.password-shell')?.querySelector('input');
+      if (!field) return;
+
+      const showPassword = field.type === 'password';
+      field.type = showPassword ? 'text' : 'password';
+      button.textContent = showPassword ? 'Hide' : 'Show';
+      button.setAttribute('aria-label', showPassword ? 'Hide password' : 'Show password');
+    });
+  });
 });
