@@ -1,3 +1,9 @@
+databases:
+  - name: edutrack-db
+    databaseName: edutrack
+    user: edutrack
+    plan: free
+
 services:
   - type: web
     name: edutrack
@@ -11,4 +17,6 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: edutrack-db
+          property: connectionString
