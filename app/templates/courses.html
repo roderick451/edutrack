@@ -47,7 +47,7 @@
             <td><span class="student-count"><i data-lucide="users"></i>{{ course.students|length }}</span></td>
             <td>
               <div class="table-actions">
-                <a href="{{ url_for('courses.edit_course', course_id=course.id) }}" class="icon-button" title="Edit course"><i data-lucide="pencil"></i></a>
+                <button type="button" class="icon-button" title="Edit course" aria-label="Edit {{ course.course_name }}" data-modal-open="edit-course-{{ course.id }}"><i data-lucide="pencil"></i></button>
                 <form action="{{ url_for('courses.delete_course', course_id=course.id) }}" method="POST" onsubmit="return confirm('Delete this course?');">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                   <button type="submit" class="icon-button danger" title="Delete course"><i data-lucide="trash-2"></i></button>
@@ -76,7 +76,7 @@
   </div>
 </div>
 
-<dialog class="record-modal course-record-modal" id="course-modal" aria-labelledby="course-modal-title" data-open-on-load="{{ 'true' if open_course_modal else 'false' }}">
+<dialog class="record-modal course-record-modal" id="course-modal" aria-labelledby="course-modal-title" data-open-on-load="{{ 'true' if modal_to_open == 'course-modal' else 'false' }}">
   <div class="record-modal-header">
     <div>
       <p class="eyebrow-label">Course management</p>
@@ -94,4 +94,29 @@
     </div>
   </form>
 </dialog>
+
+{% for course in courses %}
+{% set edit_form = edit_forms[course.id] %}
+<dialog class="record-modal course-record-modal" id="edit-course-{{ course.id }}" aria-labelledby="edit-course-title-{{ course.id }}" data-open-on-load="{{ 'true' if modal_to_open == 'edit-course-' ~ course.id else 'false' }}">
+  <div class="record-modal-header">
+    <div>
+      <p class="eyebrow-label">Course management</p>
+      <h2 id="edit-course-title-{{ course.id }}">Edit Course</h2>
+      <p class="section-subtitle">Update course details for {{ course.course_code }}.</p>
+    </div>
+    <button type="button" class="icon-button" data-modal-close aria-label="Close edit course dialog"><i data-lucide="x"></i></button>
+  </div>
+  <form method="POST" action="{{ url_for('courses.list_courses') }}" novalidate class="course-form modal-course-form">
+    {{ edit_form.hidden_tag() }}
+    <input type="hidden" name="editing_course_id" value="{{ course.id }}" />
+    {% with form = edit_form %}
+      {% include 'partials/course_form_fields.html' %}
+    {% endwith %}
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" data-modal-close>Cancel</button>
+      {{ edit_form.submit(class_='btn-primary', value='Save Changes') }}
+    </div>
+  </form>
+</dialog>
+{% endfor %}
 {% endblock %}

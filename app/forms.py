@@ -28,7 +28,7 @@ class CourseForm(FlaskForm):
     submit = SubmitField("Save Course")
 
     def validate_course_code(self, field):
-        normalized = field.data.strip()
+        normalized = field.data.strip().upper()
         existing = Course.query.filter_by(course_code=normalized).first()
         if existing and not getattr(self, "course_id", None):
             raise ValidationError("Course code already exists.")

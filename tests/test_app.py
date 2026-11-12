@@ -314,6 +314,44 @@ def test_course_list_modal_creates_course(app, client):
     assert Course.query.filter_by(course_code='BSIT').count() == 1
 
 
+def test_course_list_edit_modal_updates_course(app, client):
+    with app.app_context():
+        course = Course(course_code='BSIT', course_name='Information Technology', description='Original description')
+        user = User(username='admin', email='admin@example.com', password_hash=generate_password_hash('admin123'))
+        db.session.add_all([course, user])
+        db.session.commit()
+        course_id = course.id
+        user_id = user.id
+
+    with client.session_transaction() as sess:
+        sess['_user_id'] = str(user_id)
+        sess['_fresh'] = True
+
+    response = client.get('/courses')
+    assert response.status_code == 200
+    assert f'id="edit-course-{course_id}"'.encode() in response.data
+    assert f'name="course-{course_id}-course_code"'.encode() in response.data
+
+    response = client.get(f'/courses?modal=edit&id={course_id}')
+    edit_dialog = response.data.split(f'id="edit-course-{course_id}"'.encode(), 1)[1].split(b'>', 1)[0]
+    assert b'data-open-on-load="true"' in edit_dialog
+
+    response = client.post('/courses', data={
+        'editing_course_id': str(course_id),
+        f'course-{course_id}-course_code': 'bsit',
+        f'course-{course_id}-course_name': 'Bachelor of Science in Information Technology',
+        f'course-{course_id}-description': 'Updated description',
+        f'course-{course_id}-submit': 'Save Changes',
+    }, follow_redirects=True)
+    assert response.status_code == 200
+    assert b'Course updated successfully.' in response.data
+    with app.app_context():
+        course = db.session.get(Course, course_id)
+        assert course.course_code == 'BSIT'
+        assert course.course_name == 'Bachelor of Science in Information Technology'
+        assert course.description == 'Updated description'
+
+
 def test_search_and_filtering(app, client):
     with app.app_context():
         user = User(username='searcher', email='searcher@example.com', password_hash=generate_password_hash('secret123'))
