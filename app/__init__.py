@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 
 from flask import Flask
@@ -5,6 +6,7 @@ from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
+from werkzeug.security import generate_password_hash
 
 from .config import Config
 
@@ -49,5 +51,19 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+
+        from .models import User
+
+        if User.query.first() is None:
+            username = os.getenv("ADMIN_USERNAME", "admin")
+            password = os.getenv("ADMIN_PASSWORD", "admin123")
+            email = os.getenv("ADMIN_EMAIL", f"{username}@edutrack.local")
+            user = User(
+                username=username,
+                email=email,
+                password_hash=generate_password_hash(password),
+            )
+            db.session.add(user)
+            db.session.commit()
 
     return app
