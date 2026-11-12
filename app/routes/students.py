@@ -16,7 +16,24 @@ def _student_query():
     return query
 
 
-@students_bp.route("/students")
+def _create_student(form):
+    student = Student(
+        student_id=form.student_id.data.strip(),
+        first_name=form.first_name.data.strip(),
+        last_name=form.last_name.data.strip(),
+        email=form.email.data.strip().lower(),
+        phone=form.phone.data.strip(),
+        date_of_birth=form.date_of_birth.data,
+        gender=form.gender.data,
+        course_id=form.course_id.data,
+        year_level=form.year_level.data,
+        enrollment_status=form.enrollment_status.data,
+    )
+    db.session.add(student)
+    db.session.commit()
+
+
+@students_bp.route("/students", methods=["GET", "POST"])
 @login_required
 def list_students():
     search_query = request.args.get("q", "", type=str).strip()
@@ -55,7 +72,16 @@ def list_students():
 
     students = query.order_by(sort_column.asc()).paginate(page=page, per_page=10, error_out=False)
     courses = Course.query.order_by(Course.course_name.asc()).all()
-    return render_template("students.html", students=students, courses=courses, search_query=search_query, course_filter=course_filter, year_filter=year_filter, status_filter=status_filter, sort_by=sort_by)
+    form = StudentForm()
+    form.course_id.choices = [(course.id, course.course_name) for course in courses]
+    open_student_modal = request.args.get("modal") == "add"
+    if request.method == "POST":
+        open_student_modal = True
+        if form.validate_on_submit():
+            _create_student(form)
+            flash("Student record created successfully.", "success")
+            return redirect(url_for("students.list_students"))
+    return render_template("students.html", students=students, courses=courses, form=form, open_student_modal=open_student_modal, search_query=search_query, course_filter=course_filter, year_filter=year_filter, status_filter=status_filter, sort_by=sort_by)
 
 
 @students_bp.route("/students/new", methods=["GET", "POST"])
@@ -64,20 +90,7 @@ def new_student():
     form = StudentForm()
     form.course_id.choices = [(course.id, course.course_name) for course in Course.query.order_by(Course.course_name).all()]
     if form.validate_on_submit():
-        student = Student(
-            student_id=form.student_id.data.strip(),
-            first_name=form.first_name.data.strip(),
-            last_name=form.last_name.data.strip(),
-            email=form.email.data.strip().lower(),
-            phone=form.phone.data.strip(),
-            date_of_birth=form.date_of_birth.data,
-            gender=form.gender.data,
-            course_id=form.course_id.data,
-            year_level=form.year_level.data,
-            enrollment_status=form.enrollment_status.data,
-        )
-        db.session.add(student)
-        db.session.commit()
+        _create_student(form)
         flash("Student record created successfully.", "success")
         return redirect(url_for("students.list_students"))
     return render_template("student_form.html", form=form, title="Add Student")

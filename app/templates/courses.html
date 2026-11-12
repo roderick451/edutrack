@@ -12,7 +12,7 @@
       <p class="section-subtitle">Manage the programs and courses offered by your institution.</p>
     </div>
     <div class="page-actions">
-      <a href="{{ url_for('courses.new_course') }}" class="btn-primary"><i data-lucide="plus"></i> Add Course</a>
+      <button type="button" class="btn-primary" data-modal-open="course-modal"><i data-lucide="plus"></i> Add Course</button>
     </div>
   </div>
 
@@ -75,4 +75,23 @@
     </div>
   </div>
 </div>
+
+<dialog class="record-modal course-record-modal" id="course-modal" aria-labelledby="course-modal-title" data-open-on-load="{{ 'true' if open_course_modal else 'false' }}">
+  <div class="record-modal-header">
+    <div>
+      <p class="eyebrow-label">Course management</p>
+      <h2 id="course-modal-title">Add Course</h2>
+      <p class="section-subtitle">Enter the course code, name, and description.</p>
+    </div>
+    <button type="button" class="icon-button" data-modal-close aria-label="Close dialog"><i data-lucide="x"></i></button>
+  </div>
+  <form method="POST" action="{{ url_for('courses.list_courses') }}" novalidate class="course-form modal-course-form">
+    {{ form.hidden_tag() }}
+    {% include 'partials/course_form_fields.html' %}
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" data-modal-close>Cancel</button>
+      {{ form.submit(class_='btn-primary', value='Add Course') }}
+    </div>
+  </form>
+</dialog>
 {% endblock %}

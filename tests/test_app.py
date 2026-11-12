@@ -58,6 +58,10 @@ def test_authenticated_dashboard_renders_reference_sections(app, client):
     assert b'aria-label="Notifications"' in response.data
     assert b'/reports' in response.data
     assert b'/settings' in response.data
+    welcome = response.data.split(b'<section class="dashboard-welcome">', 1)[1].split(b'</section>', 1)[0]
+    assert b'Add Student' not in welcome
+    assert b'/students?modal=add' in response.data
+    assert b'/courses?modal=add' in response.data
 
 
 def test_admin_can_update_account_settings(app, client):
@@ -131,6 +135,42 @@ def test_student_crud_flow(app, client):
     assert Student.query.filter_by(student_id='STU-001').count() == 1
 
 
+def test_student_list_modal_creates_student(app, client):
+    with app.app_context():
+        course = Course(course_code='CS101', course_name='Intro to Computing')
+        user = User(username='admin', email='admin@example.com', password_hash=generate_password_hash('admin123'))
+        db.session.add_all([course, user])
+        db.session.commit()
+        course_id = course.id
+        user_id = user.id
+
+    with client.session_transaction() as sess:
+        sess['_user_id'] = str(user_id)
+        sess['_fresh'] = True
+
+    response = client.get('/students?modal=add')
+    assert response.status_code == 200
+    assert b'id="student-modal"' in response.data
+    assert b'data-open-on-load="true"' in response.data
+
+    response = client.post('/students', data={
+        'student_id': 'STU-101',
+        'first_name': 'Alex',
+        'last_name': 'Rivera',
+        'email': 'alex.rivera@gmail.com',
+        'phone': '09171234567',
+        'date_of_birth': '2001-06-10',
+        'gender': 'Other',
+        'course_id': str(course_id),
+        'year_level': '1st Year',
+        'enrollment_status': 'Active',
+        'submit': 'Add Student',
+    }, follow_redirects=True)
+    assert response.status_code == 200
+    assert b'Student record created successfully.' in response.data
+    assert Student.query.filter_by(email='alex.rivera@gmail.com').count() == 1
+
+
 def test_duplicate_student_id_prevention(app, client):
     with app.app_context():
         course = Course(course_code='CS201', course_name='Data Structures', description='Data structures basics')
@@ -183,6 +223,33 @@ def test_course_crud(app, client):
     assert response.status_code == 200
     assert Course.query.filter_by(course_code='CS102').count() == 1
     assert client.get('/reports').status_code == 200
+
+
+def test_course_list_modal_creates_course(app, client):
+    with app.app_context():
+        user = User(username='admin', email='admin@example.com', password_hash=generate_password_hash('admin123'))
+        db.session.add(user)
+        db.session.commit()
+        user_id = user.id
+
+    with client.session_transaction() as sess:
+        sess['_user_id'] = str(user_id)
+        sess['_fresh'] = True
+
+    response = client.get('/courses?modal=add')
+    assert response.status_code == 200
+    assert b'id="course-modal"' in response.data
+    assert b'data-open-on-load="true"' in response.data
+
+    response = client.post('/courses', data={
+        'course_code': 'bsit',
+        'course_name': 'Information Technology',
+        'description': 'Technology program',
+        'submit': 'Add Course',
+    }, follow_redirects=True)
+    assert response.status_code == 200
+    assert b'Course created successfully.' in response.data
+    assert Course.query.filter_by(course_code='BSIT').count() == 1
 
 
 def test_search_and_filtering(app, client):

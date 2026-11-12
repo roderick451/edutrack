@@ -13,7 +13,7 @@
     </div>
     <div class="page-actions">
       <a href="{{ url_for('students.export_students') }}" class="btn-secondary"><i data-lucide="download"></i> Export CSV</a>
-      <a href="{{ url_for('students.new_student') }}" class="btn-primary"><i data-lucide="user-plus"></i> Add Student</a>
+      <button type="button" class="btn-primary" data-modal-open="student-modal"><i data-lucide="user-plus"></i> Add Student</button>
     </div>
   </div>
 
@@ -92,7 +92,7 @@
             <td colspan="7">
               <div class="empty-state">
                 <p>No student records found.</p>
-                <a href="{{ url_for('students.new_student') }}" class="mini-link">Add the first student</a>
+                <a href="{{ url_for('students.list_students', modal='add') }}" class="mini-link">Add the first student</a>
               </div>
             </td>
           </tr>
@@ -116,4 +116,23 @@
     {% endif %}
   </div>
 </div>
+
+<dialog class="record-modal student-record-modal" id="student-modal" aria-labelledby="student-modal-title" data-open-on-load="{{ 'true' if open_student_modal else 'false' }}">
+  <div class="record-modal-header">
+    <div>
+      <p class="eyebrow-label">Student record management</p>
+      <h2 id="student-modal-title">Add Student</h2>
+      <p class="section-subtitle">Enter the student’s personal, contact, and academic information.</p>
+    </div>
+    <button type="button" class="icon-button" data-modal-close aria-label="Close dialog"><i data-lucide="x"></i></button>
+  </div>
+  <form method="POST" action="{{ url_for('students.list_students') }}" novalidate class="modal-student-form">
+    {{ form.hidden_tag() }}
+    {% include 'partials/student_form_fields.html' %}
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" data-modal-close>Cancel</button>
+      {{ form.submit(class_='btn-primary', value='Add Student', disabled=not courses) }}
+    </div>
+  </form>
+</dialog>
 {% endblock %}

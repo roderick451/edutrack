@@ -19,21 +19,7 @@
   <div class="panel course-form-panel">
     <form method="POST" novalidate class="course-form">
       {{ form.hidden_tag() }}
-      <div class="form-field">
-        <label for="{{ form.course_code.id }}">Course Code <span class="required-mark">*</span></label>
-        {{ form.course_code(class_='input-field', placeholder='e.g. BSIT') }}
-        {% for error in form.course_code.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
-      </div>
-      <div class="form-field">
-        <label for="{{ form.course_name.id }}">Course Name <span class="required-mark">*</span></label>
-        {{ form.course_name(class_='input-field', placeholder='Enter course name') }}
-        {% for error in form.course_name.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
-      </div>
-      <div class="form-field">
-        <label for="{{ form.description.id }}">Description</label>
-        {{ form.description(class_='input-field course-description-field', placeholder='Briefly describe this course') }}
-        {% for error in form.description.errors %}<p class="error-text">{{ error }}</p>{% endfor %}
-      </div>
+      {% include 'partials/course_form_fields.html' %}
 
       <div class="form-actions">
         <a href="{{ url_for('courses.list_courses') }}" class="btn-secondary">Cancel</a>

@@ -11,10 +11,6 @@
       <h2><span data-greeting>Good morning</span>, {{ current_user.username|capitalize }}! <span aria-hidden="true">👋</span></h2>
       <p>Here’s what’s happening in your student management system today.</p>
     </div>
-    <a href="{{ url_for('students.new_student') }}" class="btn-primary">
-      <i data-lucide="user-plus"></i>
-      <span>Add Student</span>
-    </a>
   </section>
 
   <section class="metrics-grid">
@@ -154,11 +150,11 @@
         <h3>Quick Actions</h3>
       </div>
       <div class="quick-grid">
-        <a href="{{ url_for('students.new_student') }}" class="action-card">
+        <a href="{{ url_for('students.list_students', modal='add') }}" class="action-card">
           <i data-lucide="user-plus"></i>
           <span>Add Student</span>
         </a>
-        <a href="{{ url_for('courses.new_course') }}" class="action-card">
+        <a href="{{ url_for('courses.list_courses', modal='add') }}" class="action-card">
           <i data-lucide="plus-circle"></i>
           <span>Add Course</span>
         </a>

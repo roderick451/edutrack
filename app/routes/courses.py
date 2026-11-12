@@ -9,7 +9,17 @@ from app.models import Course, Student
 courses_bp = Blueprint("courses", __name__)
 
 
-@courses_bp.route("/courses")
+def _create_course(form):
+    course = Course(
+        course_code=form.course_code.data.strip().upper(),
+        course_name=form.course_name.data.strip(),
+        description=form.description.data.strip() if form.description.data else None,
+    )
+    db.session.add(course)
+    db.session.commit()
+
+
+@courses_bp.route("/courses", methods=["GET", "POST"])
 @login_required
 def list_courses():
     search_query = request.args.get("q", "", type=str).strip()
@@ -21,7 +31,15 @@ def list_courses():
             | Course.description.ilike(f"%{search_query}%")
         )
     courses = query.order_by(Course.course_name.asc()).all()
-    return render_template("courses.html", courses=courses, search_query=search_query)
+    form = CourseForm()
+    open_course_modal = request.args.get("modal") == "add"
+    if request.method == "POST":
+        open_course_modal = True
+        if form.validate_on_submit():
+            _create_course(form)
+            flash("Course created successfully.", "success")
+            return redirect(url_for("courses.list_courses"))
+    return render_template("courses.html", courses=courses, form=form, open_course_modal=open_course_modal, search_query=search_query)
 
 
 @courses_bp.route("/courses/new", methods=["GET", "POST"])
@@ -29,13 +47,7 @@ def list_courses():
 def new_course():
     form = CourseForm()
     if form.validate_on_submit():
-        course = Course(
-            course_code=form.course_code.data.strip().upper(),
-            course_name=form.course_name.data.strip(),
-            description=form.description.data.strip() if form.description.data else None,
-        )
-        db.session.add(course)
-        db.session.commit()
+        _create_course(form)
         flash("Course created successfully.", "success")
         return redirect(url_for("courses.list_courses"))
     return render_template("course_form.html", form=form, title="Add Course")
