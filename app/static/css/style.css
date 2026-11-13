@@ -983,7 +983,7 @@ body[data-theme="dark"] .progress-track { background: rgba(255,255,255,0.12); }
 .sidebar-account {
   position: absolute;
   right: 1rem;
-  bottom: 1rem;
+  bottom: 1.75rem;
   left: 1rem;
   display: grid;
   gap: 0.65rem;
