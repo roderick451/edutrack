@@ -5,7 +5,7 @@ import pytest
 from werkzeug.security import generate_password_hash
 
 from app import create_app, db
-from app.activity import seed_activity_baseline
+from app.activity import remove_activity_baseline
 from app.models import ActivityLog, Course, Student, User
 
 
@@ -42,36 +42,66 @@ def test_protected_dashboard_requires_login(client):
     assert client.get('/activity-logs').status_code == 302
 
 
-def test_activity_log_initial_snapshot_includes_existing_records_once(app):
+def test_activity_log_removes_only_generated_snapshot_entries(app):
     with app.app_context():
         ActivityLog.query.delete()
-        course = Course(course_code='BASE101', course_name='Baseline Course')
-        db.session.add(course)
-        db.session.flush()
-        student = Student(
-            student_id='STU-BASE-001',
-            first_name='Jamie',
-            last_name='Lopez',
-            email='jamie.baseline@example.com',
-            phone='09111111111',
-            date_of_birth=date(2003, 11, 20),
-            course_id=course.id,
-            year_level='1st Year',
-            enrollment_status='Active',
-        )
-        db.session.add(student)
+        db.session.add_all([
+            ActivityLog(
+                username='System',
+                action='Enabled',
+                entity_type='System',
+                entity_label='Activity Logs',
+                details='Initial activity snapshot created.',
+            ),
+            ActivityLog(
+                username='System',
+                action='Initial snapshot',
+                entity_type='Student',
+                entity_label='Jamie Lopez (STU-BASE-001)',
+                details='Record present when Activity Logs was enabled; earlier activity was not recorded.',
+            ),
+            ActivityLog(
+                username='admin',
+                action='Created',
+                entity_type='Student',
+                entity_label='Alex Rivera (STU-101)',
+                details='Enrolled in Baseline Course.',
+            ),
+            ActivityLog(
+                username='System',
+                action='Updated',
+                entity_type='Course',
+                entity_label='BASE101 - Baseline Course',
+                details='This is an actual recorded action.',
+            ),
+        ])
         db.session.commit()
 
-        seed_activity_baseline()
-        seed_activity_baseline()
+        remove_activity_baseline()
+        remove_activity_baseline()
 
         entries = ActivityLog.query.order_by(ActivityLog.id).all()
-        assert len(entries) == 3
-        assert entries[0].entity_label == 'Activity Logs'
-        assert entries[1].entity_label == 'Jamie Lopez (STU-BASE-001)'
-        assert entries[2].entity_label == 'BASE101 - Baseline Course'
-        assert all(entry.username == 'System' for entry in entries)
-        assert all(entry.action == 'Initial snapshot' for entry in entries[1:])
+        assert len(entries) == 2
+        assert [(entry.action, entry.entity_label) for entry in entries] == [
+            ('Created', 'Alex Rivera (STU-101)'),
+            ('Updated', 'BASE101 - Baseline Course'),
+        ]
+
+
+def test_activity_log_explains_when_no_real_actions_are_recorded(app, client):
+    with app.app_context():
+        user = User(username='admin', email='admin@example.com', password_hash=generate_password_hash('admin123'))
+        db.session.add(user)
+        db.session.commit()
+        user_id = user.id
+
+    with client.session_transaction() as sess:
+        sess['_user_id'] = str(user_id)
+        sess['_fresh'] = True
+
+    response = client.get('/activity-logs')
+    assert response.status_code == 200
+    assert b'No real activity has been recorded yet.' in response.data
 
 
 def test_authenticated_dashboard_renders_reference_sections(app, client):
