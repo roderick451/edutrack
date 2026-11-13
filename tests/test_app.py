@@ -407,7 +407,64 @@ def test_search_and_filtering(app, client):
     assert response.status_code == 200
     assert b'Lina' in response.data
 
+    response = client.get('/students?q=Lina+Martinez')
+    assert response.status_code == 200
+    assert b'Lina Martinez' in response.data
+    assert b'Kai Santos' not in response.data
+
     response = client.get('/students?status=Inactive')
     assert response.status_code == 200
     assert b'Kai' in response.data
     assert b'Lina' not in response.data
+
+
+def test_student_removal_requires_a_reason(app, client):
+    with app.app_context():
+        user = User(username='remover', email='remover@example.com', password_hash=generate_password_hash('secret123'))
+        course = Course(course_code='REMOVE101', course_name='Removal Test Course')
+        db.session.add_all([user, course])
+        db.session.commit()
+        student = Student(
+            student_id='STU-DEL-001',
+            first_name='Taylor',
+            last_name='Jordan',
+            email='taylor.jordan@example.com',
+            phone='09111111111',
+            date_of_birth=date(2003, 11, 20),
+            course_id=course.id,
+            year_level='2nd Year',
+            enrollment_status='Active',
+        )
+        db.session.add(student)
+        db.session.commit()
+        student_id = student.id
+        user_id = user.id
+
+    with client.session_transaction() as sess:
+        sess['_user_id'] = str(user_id)
+        sess['_fresh'] = True
+
+    page = client.get('/students')
+    assert page.status_code == 200
+    assert f'id="delete-student-{student_id}"'.encode() in page.data
+    assert f'data-modal-open="delete-student-{student_id}"'.encode() in page.data
+    assert b'Are you sure you want to remove this student?' in page.data
+    assert b'Please explain why you are removing this record.' in page.data
+    assert b'name="reason"' in page.data
+    assert b'required' in page.data
+
+    response = client.post(f'/students/{student_id}/delete', data={'reason': '  '}, follow_redirects=True)
+    assert response.status_code == 200
+    assert b'Enter a reason of 5 to 500 characters' in response.data
+    with app.app_context():
+        assert db.session.get(Student, student_id) is not None
+
+    response = client.post(
+        f'/students/{student_id}/delete',
+        data={'reason': 'Duplicate student record'},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b'Student deleted successfully.' in response.data
+    with app.app_context():
+        assert db.session.get(Student, student_id) is None

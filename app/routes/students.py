@@ -76,6 +76,7 @@ def list_students():
         query = query.filter(
             (Student.first_name.ilike(f"%{search_query}%"))
             | (Student.last_name.ilike(f"%{search_query}%"))
+            | ((Student.first_name + " " + Student.last_name).ilike(f"%{search_query}%"))
             | (Student.student_id.ilike(f"%{search_query}%"))
         )
 
@@ -180,6 +181,11 @@ def edit_student(student_id):
 @login_required
 def delete_student(student_id):
     student = Student.query.get_or_404(student_id)
+    reason = request.form.get("reason", "").strip()
+    if not 5 <= len(reason) <= 500:
+        flash("Enter a reason of 5 to 500 characters before removing this student.", "error")
+        return redirect(url_for("students.list_students"))
+
     db.session.delete(student)
     db.session.commit()
     flash("Student deleted successfully.", "success")

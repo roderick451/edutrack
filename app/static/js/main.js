@@ -15,6 +15,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }).format(new Date());
   }
 
+  document.querySelectorAll('[data-live-search]').forEach((input) => {
+    const form = input.closest('form');
+    if (!form) return;
+
+    let searchTimeout;
+    input.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => form.requestSubmit(), 400);
+    });
+  });
+
   const themeToggle = document.querySelector('.theme-toggle');
   const savedTheme = localStorage.getItem('edutrack-theme');
   if (savedTheme === 'dark') {

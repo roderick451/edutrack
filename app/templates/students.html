@@ -22,7 +22,7 @@
       <form method="GET" class="filter-form">
         <label class="search-control">
           <i data-lucide="search"></i>
-          <input type="text" name="q" value="{{ search_query }}" placeholder="Search students by name or ID..." aria-label="Search students by name or ID" />
+          <input type="search" name="q" value="{{ search_query }}" placeholder="Search students by name or ID..." aria-label="Search students by name or ID" data-live-search />
         </label>
         <select name="course_id" class="filter-select" aria-label="Filter by course">
           <option value="">All courses</option>
@@ -80,10 +80,7 @@
               <div class="table-actions">
                 <button type="button" class="icon-button" title="View student" aria-label="View {{ record.full_name }}" data-modal-open="view-student-{{ record.id }}"><i data-lucide="eye"></i></button>
                 <button type="button" class="icon-button" title="Edit student" aria-label="Edit {{ record.full_name }}" data-modal-open="edit-student-{{ record.id }}"><i data-lucide="pencil"></i></button>
-                <form action="{{ url_for('students.delete_student', student_id=record.id) }}" method="POST" onsubmit="return confirm('Delete this student record?');">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                  <button type="submit" class="icon-button danger" title="Delete student"><i data-lucide="trash-2"></i></button>
-                </form>
+                <button type="button" class="icon-button danger" title="Remove student" aria-label="Remove {{ record.full_name }}" data-modal-open="delete-student-{{ record.id }}"><i data-lucide="trash-2"></i></button>
               </div>
             </td>
           </tr>
@@ -186,6 +183,29 @@
     <div class="form-actions">
       <button type="button" class="btn-secondary" data-modal-close>Cancel</button>
       {{ edit_form.submit(class_='btn-primary', value='Save Changes') }}
+    </div>
+  </form>
+</dialog>
+
+<dialog class="record-modal delete-student-modal" id="delete-student-{{ record.id }}" aria-labelledby="delete-student-title-{{ record.id }}">
+  <div class="record-modal-header">
+    <div>
+      <p class="eyebrow-label">Student record management</p>
+      <h2 id="delete-student-title-{{ record.id }}">Are you sure you want to remove this student?</h2>
+      <p class="section-subtitle">This will permanently remove {{ record.full_name }} ({{ record.student_id }}). Please explain why you are removing this record.</p>
+    </div>
+    <button type="button" class="icon-button" data-modal-close aria-label="Cancel student removal"><i data-lucide="x"></i></button>
+  </div>
+  <form method="POST" action="{{ url_for('students.delete_student', student_id=record.id) }}" class="delete-student-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <div class="form-field">
+      <label for="delete-reason-{{ record.id }}">Reason for removal <span class="required-mark">*</span></label>
+      <textarea class="input-field" id="delete-reason-{{ record.id }}" name="reason" rows="4" minlength="5" maxlength="500" required placeholder="Enter the reason for removing this student record"></textarea>
+      <span class="field-hint">A reason between 5 and 500 characters is required. This action cannot be undone.</span>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" data-modal-close>Cancel</button>
+      <button type="submit" class="btn-primary delete-confirm-button"><i data-lucide="trash-2"></i> Confirm Removal</button>
     </div>
   </form>
 </dialog>
