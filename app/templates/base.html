@@ -70,6 +70,10 @@
             <span class="nav-icon"><i data-lucide="bar-chart-3"></i></span>
             <span>Reports</span>
           </a>
+          <a href="{{ url_for('activity_logs.index') }}" class="nav-link {% if request.path.startswith('/activity-logs') %}active{% endif %}">
+            <span class="nav-icon"><i data-lucide="history"></i></span>
+            <span>Activity Logs</span>
+          </a>
           <a href="{{ url_for('auth.settings') }}" class="nav-link {% if request.path.startswith('/settings') %}active{% endif %}">
             <span class="nav-icon"><i data-lucide="settings-2"></i></span>
             <span>Settings</span>

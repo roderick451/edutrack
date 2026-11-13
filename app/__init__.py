@@ -36,12 +36,14 @@ def create_app():
     csrf.init_app(app)
 
     from .routes.auth import auth_bp
+    from .routes.activity_logs import activity_logs_bp
     from .routes.dashboard import dashboard_bp
     from .routes.reports import reports_bp
     from .routes.students import students_bp
     from .routes.courses import courses_bp
 
     app.register_blueprint(auth_bp)
+    app.register_blueprint(activity_logs_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(reports_bp)
     app.register_blueprint(students_bp)

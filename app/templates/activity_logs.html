@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Activity Logs | EduTrack{% endblock %}
+{% block page_title %}Activity Logs{% endblock %}
+
+{% block content %}
+<div class="records-page">
+  <div class="page-heading-row">
+    <div>
+      <p class="eyebrow-label">System history</p>
+      <h2 class="section-title">Activity Logs</h2>
+      <p class="section-subtitle">Review recent account and student or course changes.</p>
+    </div>
+  </div>
+
+  <section class="panel records-panel">
+    <div class="panel-header">
+      <div>
+        <h3>Recent Activity</h3>
+        <p class="section-subtitle">Newest actions appear first. Removal reasons are included where provided.</p>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table class="table-fixed activity-table">
+        <thead>
+          <tr>
+            <th>When</th>
+            <th>User</th>
+            <th>Action</th>
+            <th>Record</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs.items %}
+          <tr>
+            <td><time datetime="{{ log.created_at.isoformat() }}">{{ log.created_at.strftime('%b %d, %Y %I:%M %p') }}</time></td>
+            <td>{{ log.username }}</td>
+            <td><span class="activity-action activity-action-{{ log.action|lower|replace(' ', '-') }}">{{ log.action }}</span></td>
+            <td>
+              <span class="activity-record-type">{{ log.entity_type }}</span>
+              <strong class="activity-record-label">{{ log.entity_label }}</strong>
+            </td>
+            <td>{{ log.details or '—' }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="5"><div class="empty-state"><p>No activity recorded yet.</p></div></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if logs.pages > 1 %}
+    <div class="pagination-row">
+      <div>Page {{ logs.page }} of {{ logs.pages }}</div>
+      <div class="pagination-actions">
+        {% if logs.has_prev %}
+          <a href="{{ url_for('activity_logs.index', page=logs.prev_num) }}" class="btn-secondary">Previous</a>
+        {% endif %}
+        {% if logs.has_next %}
+          <a href="{{ url_for('activity_logs.index', page=logs.next_num) }}" class="btn-secondary">Next</a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

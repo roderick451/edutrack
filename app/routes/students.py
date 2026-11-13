@@ -3,6 +3,7 @@ from io import StringIO
 from flask import Blueprint, Response, abort, flash, redirect, render_template, request, url_for
 from flask_login import login_required
 
+from app.activity import record_activity
 from app import db
 from app.forms import StudentForm
 from app.models import Course, Student
@@ -30,10 +31,18 @@ def _create_student(form):
         enrollment_status=form.enrollment_status.data,
     )
     db.session.add(student)
+    record_activity(
+        "Created",
+        "Student",
+        f"{student.full_name} ({student.student_id})",
+        f"Enrolled in {db.session.get(Course, student.course_id).course_name}.",
+    )
     db.session.commit()
 
 
 def _update_student(student, form):
+    original_name = student.full_name
+    original_student_id = student.student_id
     student.student_id = form.student_id.data.strip()
     student.first_name = form.first_name.data.strip()
     student.last_name = form.last_name.data.strip()
@@ -44,6 +53,12 @@ def _update_student(student, form):
     student.course_id = form.course_id.data
     student.year_level = form.year_level.data
     student.enrollment_status = form.enrollment_status.data
+    record_activity(
+        "Updated",
+        "Student",
+        f"{student.full_name} ({student.student_id})",
+        f"Updated the student record for {original_name} ({original_student_id}).",
+    )
     db.session.commit()
 
 
@@ -186,6 +201,12 @@ def delete_student(student_id):
         flash("Enter a reason of 5 to 500 characters before removing this student.", "error")
         return redirect(url_for("students.list_students"))
 
+    record_activity(
+        "Removed",
+        "Student",
+        f"{student.full_name} ({student.student_id})",
+        f"Reason: {reason}",
+    )
     db.session.delete(student)
     db.session.commit()
     flash("Student deleted successfully.", "success")

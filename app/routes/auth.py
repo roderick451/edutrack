@@ -2,6 +2,7 @@ from flask import Blueprint, flash, redirect, render_template, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from app.activity import record_activity
 from app import db
 from app.forms import AdminSettingsForm, LoginForm
 from app.models import User
@@ -21,6 +22,8 @@ def login():
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password_hash, form.password.data):
             login_user(user, remember=form.remember_me.data)
+            record_activity("Signed in", "Account", user.username)
+            db.session.commit()
             flash("Welcome back!", "success")
             return redirect(url_for("dashboard.index"))
         flash("Invalid username or password.", "error")
@@ -35,6 +38,8 @@ def forgot_password():
 @auth_bp.route("/logout")
 @login_required
 def logout():
+    record_activity("Signed out", "Account", current_user.username)
+    db.session.commit()
     logout_user()
     flash("You have been logged out.", "success")
     return redirect(url_for("auth.login"))
@@ -58,10 +63,17 @@ def settings():
         if form.username.errors or form.email.errors:
             return render_template("settings.html", form=form)
 
+        password_changed = bool(form.new_password.data)
         current_user.username = username
         current_user.email = email
         if form.new_password.data:
             current_user.password_hash = generate_password_hash(form.new_password.data)
+        record_activity(
+            "Updated",
+            "Account",
+            current_user.username,
+            "Updated account profile and password." if password_changed else "Updated account profile.",
+        )
         db.session.commit()
         flash("Account settings updated successfully.", "success")
         return redirect(url_for("auth.settings"))

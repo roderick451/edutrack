@@ -752,9 +752,18 @@ button, input, select, textarea { font: inherit; }
 .table-scroll { width: 100%; overflow-x: auto; }
 .student-table { min-width: 940px; table-layout: fixed; }
 .course-table { min-width: 820px; }
+.activity-table { min-width: 900px; }
 .student-table th, .course-table th { padding: 0.78rem 0.9rem; }
 .student-table td, .course-table td { padding: 0.72rem 0.9rem; font-size: 0.78rem; }
 .student-table tbody tr:hover, .course-table tbody tr:hover { background: var(--hover); }
+.activity-table th, .activity-table td { padding: 0.8rem 0.9rem; font-size: 0.78rem; vertical-align: top; }
+.activity-table tbody tr:hover { background: var(--hover); }
+.activity-action { display: inline-flex; padding: 0.28rem 0.55rem; border-radius: 999px; background: var(--blue-100); color: var(--blue-700); font-size: 0.7rem; font-weight: 800; white-space: nowrap; }
+.activity-action-removed { background: rgba(239,68,68,0.1); color: var(--danger); }
+.activity-action-signed-in { background: rgba(22,163,74,0.12); color: var(--success); }
+.activity-action-signed-out { background: rgba(100,116,139,0.12); color: var(--muted); }
+.activity-record-type { display: block; margin-bottom: 0.2rem; color: var(--muted); font-size: 0.68rem; }
+.activity-record-label { display: block; color: var(--text); overflow-wrap: anywhere; }
 .student-table th:nth-child(1) { width: 12%; }
 .student-table th:nth-child(2) { width: 23%; }
 .student-table th:nth-child(3) { width: 18%; }

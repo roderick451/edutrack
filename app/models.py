@@ -27,6 +27,22 @@ class User(UserMixin, db.Model):
         return f"<User {self.username}>"
 
 
+class ActivityLog(db.Model):
+    __tablename__ = "activity_logs"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, nullable=True)
+    username = db.Column(db.String(80), nullable=False)
+    action = db.Column(db.String(40), nullable=False)
+    entity_type = db.Column(db.String(40), nullable=False)
+    entity_label = db.Column(db.String(200), nullable=False)
+    details = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+
+    def __repr__(self):
+        return f"<ActivityLog {self.action} {self.entity_type}>"
+
+
 class Course(db.Model):
     __tablename__ = "courses"
 

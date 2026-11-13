@@ -1,6 +1,7 @@
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import login_required
 
+from app.activity import record_activity
 from app import db
 from app.forms import CourseForm
 from app.models import Course, Student
@@ -16,13 +17,21 @@ def _create_course(form):
         description=form.description.data.strip() if form.description.data else None,
     )
     db.session.add(course)
+    record_activity("Created", "Course", f"{course.course_code} - {course.course_name}")
     db.session.commit()
 
 
 def _update_course(course, form):
+    original_label = f"{course.course_code} - {course.course_name}"
     course.course_code = form.course_code.data.strip().upper()
     course.course_name = form.course_name.data.strip()
     course.description = form.description.data.strip() if form.description.data else None
+    record_activity(
+        "Updated",
+        "Course",
+        f"{course.course_code} - {course.course_name}",
+        f"Updated course details for {original_label}.",
+    )
     db.session.commit()
 
 
@@ -129,6 +138,12 @@ def delete_course(course_id):
         flash("Enter a reason of 5 to 500 characters before removing this course.", "error")
         return redirect(url_for("courses.list_courses"))
 
+    record_activity(
+        "Removed",
+        "Course",
+        f"{course.course_code} - {course.course_name}",
+        f"Reason: {reason}",
+    )
     db.session.delete(course)
     db.session.commit()
     flash("Course deleted successfully.", "success")

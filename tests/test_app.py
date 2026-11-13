@@ -5,7 +5,7 @@ import pytest
 from werkzeug.security import generate_password_hash
 
 from app import create_app, db
-from app.models import Course, Student, User
+from app.models import ActivityLog, Course, Student, User
 
 
 @pytest.fixture
@@ -38,6 +38,7 @@ def test_login_page_loads(client):
 def test_protected_dashboard_requires_login(client):
     response = client.get('/dashboard')
     assert response.status_code == 302
+    assert client.get('/activity-logs').status_code == 302
 
 
 def test_authenticated_dashboard_renders_reference_sections(app, client):
@@ -89,6 +90,8 @@ def test_admin_can_update_account_settings(app, client):
         assert user.username == 'newadmin'
         assert user.email == 'newadmin@example.com'
         assert user.verify_password('newpassword123')
+        activity = ActivityLog.query.filter_by(entity_type='Account', action='Updated').one()
+        assert activity.username == 'newadmin'
 
 
 def test_reports_and_password_help_pages(client):
@@ -132,7 +135,11 @@ def test_student_crud_flow(app, client):
         'enrollment_status': 'Active',
     }, follow_redirects=True)
     assert response.status_code == 200
-    assert Student.query.filter_by(student_id='STU-001').count() == 1
+    with app.app_context():
+        assert Student.query.filter_by(student_id='STU-001').count() == 1
+        activity = ActivityLog.query.filter_by(entity_type='Student', action='Created').one()
+        assert activity.entity_label == 'Jane Doe (STU-001)'
+        assert activity.details == 'Enrolled in Intro to Computing.'
 
 
 def test_student_list_modal_creates_student(app, client):
@@ -316,6 +323,14 @@ def test_course_crud(app, client):
     response = client.post('/courses/new', data={'course_code': 'CS102', 'course_name': 'Algorithms', 'description': 'Algorithm design'}, follow_redirects=True)
     assert response.status_code == 200
     assert Course.query.filter_by(course_code='CS102').count() == 1
+    activity = ActivityLog.query.filter_by(entity_type='Course', action='Created').one()
+    assert activity.username == 'admin'
+    assert activity.entity_label == 'CS102 - Algorithms'
+    activity_page = client.get('/activity-logs')
+    assert activity_page.status_code == 200
+    assert b'Activity Logs' in activity_page.data
+    assert b'CS102 - Algorithms' in activity_page.data
+    assert activity_page.data.index(b'Activity Logs') < activity_page.data.index(b'Settings')
     assert client.get('/reports').status_code == 200
 
 
@@ -382,6 +397,8 @@ def test_course_list_edit_modal_updates_course(app, client):
         assert course.course_code == 'BSIT'
         assert course.course_name == 'Bachelor of Science in Information Technology'
         assert course.description == 'Updated description'
+        activity = ActivityLog.query.filter_by(entity_type='Course', action='Updated').one()
+        assert activity.entity_label == 'BSIT - Bachelor of Science in Information Technology'
 
 
 def test_search_and_filtering(app, client):
@@ -468,6 +485,13 @@ def test_student_removal_requires_a_reason(app, client):
     assert b'Student deleted successfully.' in response.data
     with app.app_context():
         assert db.session.get(Student, student_id) is None
+        activity = ActivityLog.query.filter_by(entity_type='Student', action='Removed').one()
+        assert activity.entity_label == 'Taylor Jordan (STU-DEL-001)'
+        assert activity.details == 'Reason: Duplicate student record'
+
+    activity_page = client.get('/activity-logs')
+    assert activity_page.status_code == 200
+    assert b'Duplicate student record' in activity_page.data
 
 
 def test_course_removal_requires_a_reason_and_preserves_enrolled_students(app, client):
