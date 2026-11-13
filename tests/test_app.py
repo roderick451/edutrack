@@ -5,6 +5,7 @@ import pytest
 from werkzeug.security import generate_password_hash
 
 from app import create_app, db
+from app.activity import seed_activity_baseline
 from app.models import ActivityLog, Course, Student, User
 
 
@@ -39,6 +40,38 @@ def test_protected_dashboard_requires_login(client):
     response = client.get('/dashboard')
     assert response.status_code == 302
     assert client.get('/activity-logs').status_code == 302
+
+
+def test_activity_log_initial_snapshot_includes_existing_records_once(app):
+    with app.app_context():
+        ActivityLog.query.delete()
+        course = Course(course_code='BASE101', course_name='Baseline Course')
+        db.session.add(course)
+        db.session.flush()
+        student = Student(
+            student_id='STU-BASE-001',
+            first_name='Jamie',
+            last_name='Lopez',
+            email='jamie.baseline@example.com',
+            phone='09111111111',
+            date_of_birth=date(2003, 11, 20),
+            course_id=course.id,
+            year_level='1st Year',
+            enrollment_status='Active',
+        )
+        db.session.add(student)
+        db.session.commit()
+
+        seed_activity_baseline()
+        seed_activity_baseline()
+
+        entries = ActivityLog.query.order_by(ActivityLog.id).all()
+        assert len(entries) == 3
+        assert entries[0].entity_label == 'Activity Logs'
+        assert entries[1].entity_label == 'Jamie Lopez (STU-BASE-001)'
+        assert entries[2].entity_label == 'BASE101 - Baseline Course'
+        assert all(entry.username == 'System' for entry in entries)
+        assert all(entry.action == 'Initial snapshot' for entry in entries[1:])
 
 
 def test_authenticated_dashboard_renders_reference_sections(app, client):

@@ -56,6 +56,7 @@ def create_app():
     with app.app_context():
         db.create_all()
 
+        from .activity import seed_activity_baseline
         from .models import User
 
         if User.query.first() is None:
@@ -69,5 +70,7 @@ def create_app():
             )
             db.session.add(user)
             db.session.commit()
+
+        seed_activity_baseline()
 
     return app
