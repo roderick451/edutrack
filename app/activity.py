@@ -32,6 +32,12 @@ def remove_activity_baseline():
         entity_label="Activity Logs",
         details="Initial activity snapshot created.",
     ).delete(synchronize_session=False)
+    historical_entries_removed = ActivityLog.query.filter(
+        ActivityLog.action == "Created (historical)",
+        ActivityLog.details.like(
+            "Backfilled % from created_at; original actor and prior field values were not recorded."
+        ),
+    ).delete(synchronize_session=False)
 
-    if snapshots_removed or baseline_marker_removed:
+    if snapshots_removed or baseline_marker_removed or historical_entries_removed:
         db.session.commit()

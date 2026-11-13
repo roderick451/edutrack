@@ -225,10 +225,18 @@ def student_profile(student_id):
 def export_students():
     output = StringIO()
     output.write("student_id,first_name,last_name,email,phone,date_of_birth,gender,course,year_level,enrollment_status\n")
-    for student in Student.query.join(Course).all():
+    students = Student.query.join(Course).all()
+    for student in students:
         output.write(
             f"{student.student_id},{student.first_name},{student.last_name},{student.email},{student.phone},{student.date_of_birth},{student.gender or ''},{student.course.course_name},{student.year_level},{student.enrollment_status}\n"
         )
+    record_activity(
+        "Exported",
+        "Student",
+        "Student records",
+        f"Exported {len(students)} student record(s) to CSV.",
+    )
+    db.session.commit()
     response = Response(output.getvalue(), mimetype="text/csv")
     response.headers["Content-Disposition"] = "attachment; filename=students.csv"
     return response

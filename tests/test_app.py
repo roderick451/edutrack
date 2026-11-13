@@ -42,37 +42,30 @@ def test_protected_dashboard_requires_login(client):
     assert client.get('/activity-logs').status_code == 302
 
 
-def test_activity_log_removes_only_generated_snapshot_entries(app):
+def test_activity_log_removes_synthetic_entries_and_preserves_real_actions(app):
     with app.app_context():
         ActivityLog.query.delete()
         db.session.add_all([
             ActivityLog(
                 username='System',
-                action='Enabled',
-                entity_type='System',
-                entity_label='Activity Logs',
-                details='Initial activity snapshot created.',
-            ),
-            ActivityLog(
-                username='System',
                 action='Initial snapshot',
                 entity_type='Student',
-                entity_label='Jamie Lopez (STU-BASE-001)',
+                entity_label='Fake historical record',
                 details='Record present when Activity Logs was enabled; earlier activity was not recorded.',
+            ),
+            ActivityLog(
+                username='Not recorded',
+                action='Created (historical)',
+                entity_type='Course',
+                entity_label='Fake backfilled course',
+                details='Backfilled course record #1 from created_at; original actor and prior field values were not recorded.',
             ),
             ActivityLog(
                 username='admin',
                 action='Created',
                 entity_type='Student',
-                entity_label='Alex Rivera (STU-101)',
-                details='Enrolled in Baseline Course.',
-            ),
-            ActivityLog(
-                username='System',
-                action='Updated',
-                entity_type='Course',
-                entity_label='BASE101 - Baseline Course',
-                details='This is an actual recorded action.',
+                entity_label='Actual Student (STU-REAL-001)',
+                details='Real creation already recorded.',
             ),
         ])
         db.session.commit()
@@ -81,11 +74,43 @@ def test_activity_log_removes_only_generated_snapshot_entries(app):
         remove_activity_baseline()
 
         entries = ActivityLog.query.order_by(ActivityLog.id).all()
-        assert len(entries) == 2
-        assert [(entry.action, entry.entity_label) for entry in entries] == [
-            ('Created', 'Alex Rivera (STU-101)'),
-            ('Updated', 'BASE101 - Baseline Course'),
-        ]
+        assert len(entries) == 1
+        assert entries[0].action == 'Created'
+        assert entries[0].entity_label == 'Actual Student (STU-REAL-001)'
+
+
+def test_student_csv_export_is_logged_as_a_real_activity(app, client):
+    with app.app_context():
+        course = Course(course_code='EXPORT101', course_name='Export Test Course')
+        user = User(username='exporter', email='exporter@example.com', password_hash=generate_password_hash('secret123'))
+        db.session.add_all([course, user])
+        db.session.commit()
+        student = Student(
+            student_id='STU-EXPORT-001',
+            first_name='Morgan',
+            last_name='Reyes',
+            email='morgan.reyes@example.com',
+            phone='09111111111',
+            date_of_birth=date(2003, 11, 20),
+            course_id=course.id,
+            year_level='1st Year',
+            enrollment_status='Active',
+        )
+        db.session.add(student)
+        db.session.commit()
+        user_id = user.id
+
+    with client.session_transaction() as sess:
+        sess['_user_id'] = str(user_id)
+        sess['_fresh'] = True
+
+    response = client.get('/students/export')
+    assert response.status_code == 200
+    assert b'STU-EXPORT-001' in response.data
+    with app.app_context():
+        activity = ActivityLog.query.filter_by(action='Exported', entity_type='Student').one()
+        assert activity.username == 'exporter'
+        assert activity.details == 'Exported 1 student record(s) to CSV.'
 
 
 def test_activity_log_explains_when_no_real_actions_are_recorded(app, client):
