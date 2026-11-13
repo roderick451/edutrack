@@ -123,6 +123,12 @@ def delete_course(course_id):
     if Student.query.filter_by(course_id=course.id).count() > 0:
         flash("Cannot delete a course with assigned students.", "error")
         return redirect(url_for("courses.list_courses"))
+
+    reason = request.form.get("reason", "").strip()
+    if not 5 <= len(reason) <= 500:
+        flash("Enter a reason of 5 to 500 characters before removing this course.", "error")
+        return redirect(url_for("courses.list_courses"))
+
     db.session.delete(course)
     db.session.commit()
     flash("Course deleted successfully.", "success")

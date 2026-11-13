@@ -48,10 +48,7 @@
             <td>
               <div class="table-actions">
                 <button type="button" class="icon-button" title="Edit course" aria-label="Edit {{ course.course_name }}" data-modal-open="edit-course-{{ course.id }}"><i data-lucide="pencil"></i></button>
-                <form action="{{ url_for('courses.delete_course', course_id=course.id) }}" method="POST" onsubmit="return confirm('Delete this course?');">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                  <button type="submit" class="icon-button danger" title="Delete course"><i data-lucide="trash-2"></i></button>
-                </form>
+                <button type="button" class="icon-button danger" title="Remove course" aria-label="Remove {{ course.course_name }}" data-modal-open="delete-course-{{ course.id }}"><i data-lucide="trash-2"></i></button>
               </div>
             </td>
           </tr>
@@ -115,6 +112,34 @@
     <div class="form-actions">
       <button type="button" class="btn-secondary" data-modal-close>Cancel</button>
       {{ edit_form.submit(class_='btn-primary', value='Save Changes') }}
+    </div>
+  </form>
+</dialog>
+{% endfor %}
+
+{% for course in courses %}
+<dialog class="record-modal delete-course-modal" id="delete-course-{{ course.id }}" aria-labelledby="delete-course-title-{{ course.id }}">
+  <div class="record-modal-header">
+    <div>
+      <p class="eyebrow-label">Course management</p>
+      <h2 id="delete-course-title-{{ course.id }}">Are you sure you want to remove this course?</h2>
+      <p class="section-subtitle">This will permanently remove {{ course.course_name }} ({{ course.course_code }}). Please explain why you are removing this course.</p>
+    </div>
+    <button type="button" class="icon-button" data-modal-close aria-label="Cancel course removal"><i data-lucide="x"></i></button>
+  </div>
+  <form method="POST" action="{{ url_for('courses.delete_course', course_id=course.id) }}" class="delete-course-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <div class="form-field">
+      <label for="delete-course-reason-{{ course.id }}">Reason for removal <span class="required-mark">*</span></label>
+      <textarea class="input-field" id="delete-course-reason-{{ course.id }}" name="reason" rows="4" minlength="5" maxlength="500" required placeholder="Enter the reason for removing this course"></textarea>
+      <span class="field-hint">A reason between 5 and 500 characters is required. This action cannot be undone.</span>
+    </div>
+    {% if course.students %}
+    <p class="course-delete-warning">This course has {{ course.students|length }} assigned student{{ 's' if course.students|length != 1 else '' }}. Reassign those students before removing the course; student records will not be deleted.</p>
+    {% endif %}
+    <div class="form-actions">
+      <button type="button" class="btn-secondary" data-modal-close>Cancel</button>
+      <button type="submit" class="btn-primary delete-confirm-button" {% if course.students %}disabled{% endif %}><i data-lucide="trash-2"></i> Confirm Removal</button>
     </div>
   </form>
 </dialog>

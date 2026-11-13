@@ -858,8 +858,15 @@ button, input, select, textarea { font: inherit; }
 .delete-student-form { display: grid; gap: 0.75rem; }
 .delete-student-form textarea { min-height: 110px; resize: vertical; }
 .delete-student-form .form-actions { padding: 0.25rem 0 0; }
+.delete-course-modal { width: min(560px, calc(100% - 2rem)); }
+.delete-course-modal .section-subtitle { line-height: 1.6; }
+.delete-course-form { display: grid; gap: 0.75rem; }
+.delete-course-form textarea { min-height: 110px; resize: vertical; }
+.delete-course-form .form-actions { padding: 0.25rem 0 0; }
+.course-delete-warning { margin: 0; padding: 0.75rem 0.9rem; border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 0.7rem; background: rgba(245, 158, 11, 0.1); color: #92400e; font-size: 0.8rem; line-height: 1.5; }
 .delete-confirm-button { background: #dc2626; box-shadow: 0 8px 18px rgba(220, 38, 38, 0.18); }
 .delete-confirm-button:hover { background: #b91c1c; }
+.delete-confirm-button:disabled { cursor: not-allowed; opacity: 0.55; }
 .student-modal-heading { display: flex; align-items: center; gap: 0.8rem; }
 .student-modal-heading .initial-badge { width: 48px; height: 48px; font-size: 0.9rem; }
 .student-modal-heading .eyebrow-label { margin-bottom: 0.2rem; }

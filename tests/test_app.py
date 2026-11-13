@@ -468,3 +468,81 @@ def test_student_removal_requires_a_reason(app, client):
     assert b'Student deleted successfully.' in response.data
     with app.app_context():
         assert db.session.get(Student, student_id) is None
+
+
+def test_course_removal_requires_a_reason_and_preserves_enrolled_students(app, client):
+    with app.app_context():
+        user = User(username='course_remover', email='course-remover@example.com', password_hash=generate_password_hash('secret123'))
+        course = Course(course_code='COURSE-DEL', course_name='Course Removal Test')
+        db.session.add_all([user, course])
+        db.session.commit()
+        student = Student(
+            student_id='STU-COURSE-DEL',
+            first_name='Casey',
+            last_name='Taylor',
+            email='casey.taylor@example.com',
+            phone='09111111111',
+            date_of_birth=date(2003, 11, 20),
+            course_id=course.id,
+            year_level='2nd Year',
+            enrollment_status='Active',
+        )
+        db.session.add(student)
+        db.session.commit()
+        course_id = course.id
+        student_id = student.id
+        user_id = user.id
+
+    with client.session_transaction() as sess:
+        sess['_user_id'] = str(user_id)
+        sess['_fresh'] = True
+
+    page = client.get('/courses')
+    assert page.status_code == 200
+    assert f'data-modal-open="delete-course-{course_id}"'.encode() in page.data
+    assert f'id="delete-course-{course_id}"'.encode() in page.data
+    assert b'Are you sure you want to remove this course?' in page.data
+    assert b'name="reason"' in page.data
+    assert b'Reassign those students before removing the course' in page.data
+    assert b'<button type="submit" class="btn-primary delete-confirm-button" disabled>' in page.data
+
+    response = client.post(
+        f'/courses/{course_id}/delete',
+        data={'reason': 'No longer offered'},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b'Cannot delete a course with assigned students.' in response.data
+    with app.app_context():
+        assert db.session.get(Course, course_id) is not None
+        assert db.session.get(Student, student_id) is not None
+
+
+def test_course_without_students_requires_removal_reason(app, client):
+    with app.app_context():
+        user = User(username='course_admin', email='course-admin@example.com', password_hash=generate_password_hash('secret123'))
+        course = Course(course_code='EMPTY-COURSE', course_name='Empty Course')
+        db.session.add_all([user, course])
+        db.session.commit()
+        course_id = course.id
+        user_id = user.id
+
+    with client.session_transaction() as sess:
+        sess['_user_id'] = str(user_id)
+        sess['_fresh'] = True
+
+    response = client.post(f'/courses/{course_id}/delete', data={'reason': '  '}, follow_redirects=True)
+    assert response.status_code == 200
+    assert b'Enter a reason of 5 to 500 characters before removing this course.' in response.data
+    with app.app_context():
+        assert db.session.get(Course, course_id) is not None
+
+    response = client.post(
+        f'/courses/{course_id}/delete',
+        data={'reason': 'Course no longer offered'},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b'Course deleted successfully.' in response.data
+    with app.app_context():
+        assert db.session.get(Course, course_id) is None
