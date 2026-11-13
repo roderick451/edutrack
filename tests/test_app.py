@@ -89,6 +89,8 @@ def test_authenticated_dashboard_renders_reference_sections(app, client):
     assert response.status_code == 200
     assert b'data-greeting>Good morning</span>, Admin!' in response.data
     assert b'Student Distribution by Course' in response.data
+    assert b'class="sidebar-logout"' in response.data
+    assert b'<span>Logout</span>' in response.data
     assert b'aria-label="Notifications"' in response.data
     assert b'/reports' in response.data
     assert b'/settings' in response.data
